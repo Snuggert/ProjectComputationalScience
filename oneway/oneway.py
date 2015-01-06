@@ -6,9 +6,9 @@ from world import World
 def main():
     myWorld = World(1000)
 
+    myWorld.add_car(2, 2, 100)
     for i in range(1):
         myWorld.add_car(2, i * 10)
-    myWorld.add_car(0, 1000)
 
     env = simpy.Environment()
     env.process(simulate(env, myWorld, 1))
@@ -18,7 +18,7 @@ def main():
 
 def simulate(env, world, tick):
     while True:
-        world.plot_cars()
+        world.plot_cars(tick)
         print("time:", env.now)
         yield env.timeout(tick)
 
