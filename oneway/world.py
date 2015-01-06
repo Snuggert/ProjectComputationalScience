@@ -14,10 +14,18 @@ class World:
         self.cars.append(Car(speed, location))
 
     def move_cars(self, timedelta):
+        car = self.cars[0]
+        while car <= self.worldsize:
+            self.cars.remove(car)
+            car = self.cars[0]
+            
         for i, car in enumerate(self.cars):
-            new_location = timedelta * car.speed + car.location
+            
             try:
-                if(new_location > ):
+                before_location = self.cars[i - 1].location
+                gap = before_location - car.location
+                
+                if(gap > ):
                     car.location = timedelta * car.speed + car.location
 
                 relative_speed = car.speed - self.cars[i - 1].speed
@@ -28,6 +36,7 @@ class World:
                     if(new_speed < 0):
                         new_speed = 0
                     car.set_next_speed(new_speed)
+                    
             except ValueError, e:
                 car.location =  timedelta * car.speed + car.location
                 car.speed = car.speed + car.max_accellerate
