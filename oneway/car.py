@@ -1,8 +1,9 @@
 class Car:
     next_speed = 0
 
-    max_brake = -5
+    max_brake = -10
     max_accellerate = 2
+    t_react = 1
 
     def __init__(self, speed, location):
         self.speed = speed
