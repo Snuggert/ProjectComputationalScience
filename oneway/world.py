@@ -15,10 +15,15 @@ class World:
         self.cars.append(Car(speed, location))
 
     def move_cars(self, timedelta):
-        car = self.cars[0]
-        while car <= self.worldsize:
-            self.cars.remove(car)
-            car = self.cars[0]
+        if(len(self.cars) == 0):
+            return
+        while True:
+            if(self.cars[0].location > self.worldsize):
+                self.cars.pop(0)
+            else:
+                break
+            if(len(self.cars) == 0):
+                return
 
         for i, car in enumerate(self.cars):
             print "auto %d begint op locatie" % i, car.location,\
