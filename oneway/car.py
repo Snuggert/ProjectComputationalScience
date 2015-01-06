@@ -1,7 +1,4 @@
 class Car:
-    speed = 0
-    location = 0
-
     next_speed = 0
 
     max_brake = -5

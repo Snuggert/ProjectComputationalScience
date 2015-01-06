@@ -24,4 +24,4 @@ class World:
                         new_speed = 0
                     car.set_next_speed(new_speed)
             except ValueError, e:
-                raise
+                car.speed = car.speed + car.max_accellerate
