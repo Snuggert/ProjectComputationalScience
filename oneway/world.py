@@ -20,7 +20,7 @@ class World:
             car = self.cars[0]
             
         for i, car in enumerate(self.cars):
-            print "auto %d begint op locatie", car.location, "met snelheid", \
+            print "auto %d begint op locatie" % i, car.location, "met snelheid", \
                   car.speed[0]
             new_location = car.location + timedelta * 0.5 * (car.speed[0] + \
                                                              car.speed[1])
@@ -29,29 +29,34 @@ class World:
 
             if(i is not 0):
                 # find gap
-                relative_speed = car.speed - self.cars[i - 1].speed
+                relative_speed = car.speed[1] - self.cars[i - 1].speed[0]
+                print "Snelheid auto voor zich", self.cars[i - 1].speed[0]
+                print "Relatieve snelheid", relative_speed
                 t_brake = relative_speed / car.max_brake
-                x_brake = t_brake * (self.cars[i - 1].speed + \
+                x_brake = t_brake * (self.cars[i - 1].speed[0] + \
                                      0.5 * relative_speed)   
                 gap = self.cars[i-1].location - car.location
+                print "Gat is", gap, "remafstand is", x_brake
                 if gap < 0:
                     print "FATAL ERROR :( "
 
                 # decide to brake
                 if(gap <= x_brake):
                     print "hij gaat straks remmen"
-                    new_speed = car.speed - car.max_brake
+                    new_speed = car.speed[1] - car.max_brake
                     if(new_speed < 0):
                         new_speed = 0
                     car.set_next_speed(new_speed)
                 else:
                     print "hij gaat harder rijden"
-                    car.accellerate(max_speed, timedelta)
+                    car.accellerate(self.max_speed, timedelta)
                     
             else:
-                car.accellerate(max_speed, timedelta)
+                car.accellerate(self.max_speed, timedelta)
 
-            print "auto %d nu op positie", car.location, 
+            print "auto %d nu op positie" % i, car.location, "met snelheid",\
+                  car.speed[0]
+            print ""
 
     def plot_cars(self):
         cars_xy = [[], []]

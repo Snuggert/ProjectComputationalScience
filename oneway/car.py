@@ -1,7 +1,7 @@
 class Car:
-    max_brake = -10
-    max_accellerate = 2
-    t_react = 1
+    max_brake = 10.
+    max_accellerate = 2.
+    t_react = 1.
 
     def __init__(self, speed, location):
         self.speed = [speed, speed, ]
@@ -17,7 +17,7 @@ class Car:
         self.speed.append(new_speed)
 
     def accellerate(self, max_speed, timedelta):
-        new_speed = self.speed + self.max_accellerate * timedelta
+        new_speed = self.speed[1] + self.max_accellerate * timedelta
         if new_speed > max_speed:
             new_speed = max_speed
                     
