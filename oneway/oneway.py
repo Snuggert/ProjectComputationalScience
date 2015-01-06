@@ -15,12 +15,16 @@ def main():
     env.process(simulate(env, myWorld, 1))
     env.run(until=100)
     plt.show()
+    print myWorld.cars
 
 
 def simulate(env, world, tick):
     while True:
         world.move_cars(tick)
         world.plot_cars()
+        #p = 0.4
+        #if random.random() < p:
+        #    world.add_car(40, 0., 0)
         print("time:", env.now)
         yield env.timeout(tick)
 

@@ -3,9 +3,8 @@ import matplotlib.pyplot as plt
 
 
 class World:
-    worldsize = 0
     cars = []
-    max_speed = 15
+    max_speed = 40
     marge = 0.5
 
     def __init__(self, worldsize):
@@ -31,27 +30,30 @@ class World:
 
             if(i is not 0):
                 # find gap
-                relative_speed = car.speed[1] - self.cars[i - 1].speed[0]
+                car_infront = self.cars[i - 1]
+                relative_speed = car.speed[1] - car_infront.speed[0]
                 if relative_speed < 0:
                     car.accellerate(self.max_speed, timedelta)
                     continue
 
-                print "Snelheid auto voor zich", self.cars[i - 1].speed[0]
+                print "Snelheid auto voor zich", car_infront.speed[0]
                 print "Relatieve snelheid", relative_speed
                 t_brake_rel = relative_speed / car.max_brake
-                x_brake_rel = t_brake_rel * (self.cars[i - 1].speed[0] +
-                                             0.5 * relative_speed)
+                #x_brake_rel = t_brake_rel * (car_infront.speed[0] +
+                 #                            0.5 * relative_speed)
                 t_brake_abs = car.speed[0] / car.max_brake
                 x_brake_abs = (car.speed[0] * t_brake_abs) / 2.
-                gap = self.cars[i - 1].location - car.location
+                gap = car_infront.location - car.location
                 print "Gat is", gap, "remafstand is", x_brake_abs
                 if gap < 0:
-                    print "FATAL ERROR :( "
+                    print "FATAL ERROR!!! >:( "
 
                 # decide to brake
-                if(gap <= x_brake_rel + x_brake_abs +
-                   car.t_react * (car.speed[0] + car.speed[1]) / 2.):
-                    print "hij gaat straks remmen"
+                min_gap = x_brake_abs + car.t_react * (car.speed[0] + 
+                                                       car.speed[1]) / 2.
+
+                if gap <= min_gap:
+                    print "hij gaat straks remmen" 
                     new_speed = car.speed[1] - car.max_brake
                     if(new_speed < 0):
                         new_speed = 0
@@ -72,8 +74,8 @@ class World:
         for car in self.cars:
             cars_xy[0].append(car.location)
             cars_xy[1].append(1)
-        plt.plot(cars_xy[0], cars_xy[1], 'o')
-        plt.axis([0, self.worldsize, 0.99, 1.01])
+        plt.plot(cars_xy[0], cars_xy[1], 'bs')
+        plt.axis([0, self.worldsize, 0, 2])
         plt.draw()
-        plt.pause(0.2)
+        plt.pause(0.1)
         plt.clf()
