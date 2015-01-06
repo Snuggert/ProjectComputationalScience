@@ -10,10 +10,12 @@ def main():
 
     env = simpy.Environment()
     env.process(simulate(env, myWorld, 1))
+    env.run(until=1000)
     
 
 def simulate(env, world, tick):
     while True:
+        print("time:", env.now)
         yield env.timeout(tick)
 
 
