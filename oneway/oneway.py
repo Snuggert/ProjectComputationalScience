@@ -1,29 +1,29 @@
 import simpy
 import random
 import matplotlib.pyplot as plt
-from world import World
+from edge import Edge
 
 
 def main():
-    myWorld = World(1000)
+    myEdge = Edge(1000)
 
-    myWorld.add_vehicle(0., 100., 1)
+    myEdge.add_vehicle(0., 100., 1)
     for i in range(9, -1, -1):
-        myWorld.add_vehicle(random.randint(0, 10), i * 10., 1)
+        myEdge.add_vehicle(random.randint(0, 10), i * 10., 1)
 
     env = simpy.Environment()
-    env.process(simulate(env, myWorld, 1))
+    env.process(simulate(env, myEdge, 1))
     env.run(until=100)
     plt.show()
 
 
-def simulate(env, world, tick):
+def simulate(env, edge, tick):
     while True:
-        world.move_vehicles(tick)
-        world.plot_vehicles()
+        edge.move_vehicles(tick)
+        edge.plot_vehicles()
         #p = 0.4
         #if random.random() < p:
-        #    world.add_vehicle(40, 0., 0)
+        #    edge.add_vehicle(40, 0., 0)
         print("time:", env.now)
         yield env.timeout(tick)
 

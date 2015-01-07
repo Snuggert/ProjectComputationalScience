@@ -2,14 +2,14 @@ from vehicle import Vehicle
 import matplotlib.pyplot as plt
 
 
-class World:
+class Edge:
     vehicles = []
     max_speed = 40
     marge = 0.5
 
-    def __init__(self, worldsize):
+    def __init__(self, edgesize):
         self.id = id
-        self.worldsize = worldsize
+        self.edgesize = edgesize
 
     def add_vehicle(self, speed, location, v_type):
         self.vehicles.append(Vehicle(speed, location, v_type))
@@ -18,7 +18,7 @@ class World:
         if(len(self.vehicles) == 0):
             return
         while True:
-            if(self.vehicles[0].location > self.worldsize):
+            if(self.vehicles[0].location > self.edgesize):
                 self.vehicles.pop(0)
             else:
                 break
@@ -80,7 +80,7 @@ class World:
             vehicles_xy[0].append(vehicle.location)
             vehicles_xy[1].append(1)
         plt.plot(vehicles_xy[0], vehicles_xy[1], 'bs')
-        plt.axis([0, self.worldsize, 0, 2])
+        plt.axis([0, self.edgesize, 0, 2])
         plt.draw()
         plt.pause(0.1)
         plt.clf()
