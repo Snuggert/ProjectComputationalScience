@@ -1,13 +1,12 @@
-class Car:
-    max_brake = 10.
-    max_accellerate = 2.
+class Vehicle:
     t_react = 1.
+    v_properties = [(2., 10.,), (3., 12.), (0., 10.)]
 
-    def __init__(self, speed, location):
+    def __init__(self, speed, location, v_type):
         self.speed = [speed, speed, ]
         self.location = location
-        self.next_speed = speed
-        
+        self.v_type = v_type
+        self.max_accelerate, self.max_brake = self.v_properties[v_type]
 
     def set_location(self, location):
         self.location = location
@@ -16,9 +15,9 @@ class Car:
         self.speed.remove(self.speed[0])
         self.speed.append(new_speed)
 
-    def accellerate(self, max_speed, timedelta):
-        new_speed = self.speed[1] + self.max_accellerate * timedelta
+    def accelerate(self, max_speed, timedelta):
+        new_speed = self.speed[1] + self.max_accelerate * timedelta
         if new_speed > max_speed:
             new_speed = max_speed
-                    
+
         self.set_next_speed(new_speed)
