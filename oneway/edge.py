@@ -1,5 +1,6 @@
-from vehicle import Vehicle
+import math
 import matplotlib.pyplot as plt
+from vehicle import Vehicle
 
 
 class Edge:
@@ -7,9 +8,12 @@ class Edge:
     max_speed = 40
     marge = 0.5
 
-    def __init__(self, edgesize):
+    def __init__(self, locations):
         self.id = id
-        self.edgesize = edgesize
+        self.locations = locations
+        self.edgesize = \
+            math.sqrt(math.pow(locations[1][0] - locations[0][0], 2) +
+                      math.pow(locations[1][1] - locations[0][1], 2))
 
     def add_vehicle(self, speed, location, v_type):
         self.vehicles.append(Vehicle(speed, location, v_type))
@@ -28,9 +32,10 @@ class Edge:
         for i, vehicle in enumerate(self.vehicles):
             print "auto %d begint op locatie" % i, vehicle.location,\
                 "met snelheid", vehicle.speed[0]
-            new_location = vehicle.location + timedelta * 0.5 * (vehicle.speed[0] +
-                                                             vehicle.speed[1])
-            print "rijdt naar ", new_location, "met eindsnelheid", vehicle.speed[1]
+            new_location = vehicle.location + timedelta * 0.5 * \
+                (vehicle.speed[0] + vehicle.speed[1])
+            print "rijdt naar ", new_location, "met eindsnelheid", \
+                vehicle.speed[1]
             vehicle.location = new_location
 
             if(i is not 0):
@@ -54,8 +59,8 @@ class Edge:
                     print "FATAL ERROR!!! >:( "
 
                 # decide to brake
-                min_gap = x_brake_abs + vehicle.t_react * (vehicle.speed[0] +
-                                                       vehicle.speed[1]) / 2.
+                min_gap = x_brake_abs + vehicle.t_react * \
+                    (vehicle.speed[0] + vehicle.speed[1]) / 2.
 
                 if gap <= min_gap:
                     print "hij gaat straks remmen"
@@ -70,8 +75,8 @@ class Edge:
             else:
                 vehicle.accelerate(self.max_speed, timedelta)
 
-            print "auto %d nu op positie" % i, vehicle.location, "met snelheid",\
-                  vehicle.speed[0]
+            print "auto %d nu op positie" % i, vehicle.location, \
+                "met snelheid", vehicle.speed[0]
             print ""
 
     def plot_vehicles(self):
