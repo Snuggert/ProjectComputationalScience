@@ -1,42 +1,41 @@
+import pygame
+import sys
 import simpy
 import random
-import pygame
 import matplotlib.pyplot as plt
 from edge import Edge
-
-white = (255, 255, 255)
+from canvas import Canvas
+from pygame.locals import QUIT, KEYDOWN, K_ESCAPE
 
 
 def main():
-    # set up pygame
-    pygame.init()
-    screen = pygame.display.set_mode((640, 480))
-
-    # set up the window
-    modes = pygame.display.list_modes(32)
-    if not modes:
-        return
-    else:
-        screen = pygame.display.set_mode(modes[0], pygame.FULLSCREEN, 32)
-
-    myEdge = Edge([[0, 100], [1000, 100]])
+    myCanvas = Canvas()
+    myEdge = Edge([[0, 100], [500, 100]])
     myEdge.add_vehicle(0., 100., 1)
     for i in range(9, -1, -1):
-        draw_vehicle(i * 10.0, myEdge, screen)
         myEdge.add_vehicle(random.randint(0, 10), i * 10., 1)
 
     env = simpy.Environment()
-    env.process(simulate(env, myEdge, 1, screen))
+    env.process(simulate(env, myEdge, 0.1, myCanvas))
     env.run(until=100)
     plt.show()
 
 
-def simulate(env, edge, tick, screen):
+def simulate(env, edge, tick, myCanvas):
     while True:
-        screen.fill((0, 0, 0))
+        for event in pygame.event.get():
+            if event.type == QUIT or (event.type == KEYDOWN and
+                                      event.key == K_ESCAPE):
+                pygame.quit()
+                sys.exit()
+
+        myCanvas.clear_screen((0, 0, 0))
+        myCanvas.draw_edge(edge)
         edge.move_vehicles(tick)
         for vehicle in edge.vehicles:
-            draw_vehicle(vehicle.location, edge, screen)
+            myCanvas.draw_vehicle(vehicle, edge)
+
+        myCanvas.update_screen()
         #p = 0.4
         #if random.random() < p:
         #    edge.add_vehicle(40, 0., 0)
@@ -44,19 +43,7 @@ def simulate(env, edge, tick, screen):
         yield env.timeout(tick)
         if(len(edge.vehicles) == 0):
             break
-        plt.pause(0.1)
-
-
-def draw_vehicle(vehicle_location, edge, screen):
-    ratio = vehicle_location / edge.edgesize
-
-    pygame.draw.rect(screen, white, (int((edge.locations[1][0] -
-                                          edge.locations[0][0]) * ratio
-                                         + edge.locations[0][0]),
-                                     int((edge.locations[1][1] -
-                                          edge.locations[0][1]) * ratio
-                                         + edge.locations[0][1]), 5, 5), 0)
-    pygame.display.update()
+        plt.pause(0.05)
 
 
 if __name__ == '__main__':
