@@ -2,11 +2,11 @@ import pygame
 import sys
 import simpy
 import random
+
 import matplotlib.pyplot as plt
 from edge import Edge
 from canvas import Canvas
 from pygame.locals import QUIT, KEYDOWN, K_ESCAPE
-
 
 def main():
     myCanvas = Canvas()
