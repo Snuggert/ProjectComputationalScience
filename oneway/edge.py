@@ -18,13 +18,12 @@ class Edge:
     def add_vehicle(self, speed, location, v_type):
         self.vehicles.append(Vehicle(speed, location, v_type))
 
-    def find_min_gap(self, v_current, v_infront, min_dist, max_brake, t_react):
-        t_brake_abs = v_current[1] / max_brake
-        x_brake_abs = (v_current[1] * t_brake_abs) / 2.
-        x_reaction = (v_current[0] + v_current[1]) / 2. * t_react
-        gap = x_brake_abs + x_reaction + min_dist
+    def find_min_gap(v_current, params):
+        min_dist, max_brake, t_react = params
+        t_brake_abs = v_current / max_brake
+        x_brake_abs = (v_current * t_brake_abs) / 2.
+        gap = x_brake_abs + min_dist
         return gap
-
 
     def move_vehicles(self, timedelta):
         if(len(self.vehicles) == 0):
@@ -39,86 +38,107 @@ class Edge:
                 return
 
         for i, vehicle in enumerate(self.vehicles):
-            print "auto %d begint op locatie %.1f met snelheid %.1f" % \
+            '''
+            Move vehicle
+            '''
+            print "auto %d begint op locatie %.2f met snelheid %.2f" % \
                 (i, vehicle.location, vehicle.speed[0])
             new_location = vehicle.location + timedelta * 0.5 * \
                 (vehicle.speed[0] + vehicle.speed[1])
-            print "rijdt naar %.1f met eindsnelheid %.1f" % \
-                (new_location, vehicle.speed[1])
+            current_speed = vehicle.speed[1]
+            print "rijdt naar %.2f met eindsnelheid %.2f" % \
+                (new_location, current_speed)
             vehicle.location = new_location
 
             # make a decision for each vehicle (that is not in front)
             if(i is not 0):
-                # find gap
+                '''
+                Find the gap and other constants
+                '''
                 vehicle_infront = self.vehicles[i - 1]
+                vel0 = vehicle_infront.speed[0]
                 min_dist = vehicle_infront.length + self.marge
                 gap = vehicle_infront.location - vehicle.location
+                params = min_dist, vehicle.max_brake, vehicle.t_react
+                needed_gap = find_min_gap(vel0, params)
                 print "--> Gat is %.2f" % gap
+
+                '''
+                Check for collision
+                '''
+                print "Needed_gap is %.2f" % needed_gap
                 if gap < vehicle_infront.length:
                     print "FATAL ERROR!!! >:( "
+                    self.vehicles = []
 
-                relative_speed = vehicle.speed[1] - vehicle_infront.speed[0]
-                min_gap = self.find_min_gap(vehicle.speed, vehicle_infront.speed, min_dist,\
-                    vehicle.max_brake, vehicle.t_react)
-
-                '''
-                Driving slower than the vehicle infront
-                '''
-                if relative_speed < 0:
-                    vehicle.accelerate(self.max_speed, timedelta)
-                    print "hij gaat versnellen"
-                    continue
-
-                print "Snelheid auto voor zich is %.1f" % vehicle_infront.speed[0]
-                print "Relatieve snelheid: %.1f" % relative_speed
-
+                relative_speed = current_speed - vehicle_infront.speed[0]
+                min_gap = find_min_gap(current_speed, params)
                 print "min_gap: %.2f" % min_gap
 
                 '''
-                Driving the same speed as the vehicle infront
+                Driving too close to the vehicle in front
                 '''
-                if abs(relative_speed) < 0.01:
-                    if gap < min_gap:
-                        new_speed = vehicle.speed[1] - vehicle.max_accelerate * timedelta
-                        vehicle.set_next_speed(new_speed)
-                        print "iets vertragen" 
+                if gap < min_gap:
+                    new_speed = 2. / timedelta * (gap - min_gap) + 2. * vel0 - current_speed
+                    acc_adj = new_speed - current_speed
+                    if acc_adj < - vehicle.max_brake:
+                        acc_adj = - vehicle.max_brake
+                    print "te dichtbij: verander snelheid met : %.2f" % acc_adj
+                    vehicle.set_next_speed(current_speed + acc_adj)
+                    continue
 
-                    elif gap > min_gap + vehicle.max_accelerate * timedelta * timedelta:
-                        vehicle.accelerate(self.max_speed, timedelta)
+                '''
+                Driving slower than the vehicle in front
+                '''
+                if relative_speed < 0:
+
+                    if gap < 2 * needed_gap:
+                        delta_t = 2. * (gap - needed_gap) / (-relative_speed)
+                        acc_adj = - relative_speed / delta_t
+                        if acc_adj > vehicle.max_accelerate:
+                            acc_adj = vehicle.max_accelerate
+                        print "hij versnelt met %.2f m/s2 (t = %.2f)" % \
+                            (acc_adj, delta_t)
+                    else:
+                        acc_adj = vehicle.max_accelerate
+
+                    vehicle.accelerate(self.max_speed, acc_adj, timedelta)
+                    continue
+
+                '''
+                Driving the same speed as the vehicle in front
+                '''
+                if abs(relative_speed) < 0.5:
+                    if gap > min_gap + vehicle.max_accelerate * timedelta * timedelta:
+                        vehicle.accelerate(self.max_speed, vehicle.max_accelerate, timedelta)
                         print "accelereren"
 
                     else:
                         print "zelfde snelheid houden"
-                        vehicle.set_next_speed(vehicle.speed[1])
+                        vehicle.set_next_speed(vel0)
                     continue
 
                 '''
-                Driving faster than the vehicle infront
+                Driving faster than the vehicle in front
                 '''
-                vel = vehicle_infront.speed[0]
-                needed_gap = self.find_min_gap([vel, vel],[vel, vel], min_dist, \
-                    vehicle.max_brake, vehicle.t_react)
-                print "needed_gap is %.1f" % needed_gap
-
                 delta_t = 2. * (gap - needed_gap) / relative_speed
                 acc_adj = relative_speed / delta_t
-                if acc_adj > 2.0 or gap < 10:
+                if (acc_adj > 2.0 or gap < 2 * needed_gap):
+                    new_speed = current_speed - acc_adj
+                    acc_adj = current_speed - new_speed
                     if acc_adj > vehicle.max_brake:
                         acc_adj = vehicle.max_brake
                         print "remmen!"
-
-                    else:
-                        print "hij gaat zijn snelheid aanpassen met %.1f m/s2" % \
-                            (-acc_adj)
-                    new_speed = vehicle.speed[1] - acc_adj
+                    print "hij gaat zijn snelheid aanpassen met %.2f m/s2" % \
+                        (-acc_adj)
                     vehicle.set_next_speed(new_speed)
                 else:
-                    print "hij gaat versnellen (t = %.1f, a was %.1f m/s2)" % \
+                    print "hij gaat versnellen (t = %.2f, a was %.2f m/s2)" % \
                         (delta_t, -acc_adj)
-                    vehicle.accelerate(self.max_speed, timedelta)
+                    vehicle.accelerate(self.max_speed, vehicle.max_accelerate, timedelta)
 
             else:
-                vehicle.accelerate(self.max_speed, timedelta)
+                vehicle.accelerate(self.max_speed, vehicle.max_accelerate,timedelta)
             print ""
 
     def plot_vehicles(self):

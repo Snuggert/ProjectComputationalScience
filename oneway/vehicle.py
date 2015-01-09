@@ -12,13 +12,19 @@ class Vehicle:
         self.location = location
 
     def set_next_speed(self, new_speed):
-        self.speed.remove(self.speed[0])
         if new_speed < 0:
             new_speed = 0.
+        elif new_speed < self.speed[1] - self.max_brake:
+            new_speed = self.speed[1] - self.max_brake
+
+        self.speed.remove(self.speed[0])
         self.speed.append(new_speed)
 
-    def accelerate(self, max_speed, timedelta):
-        new_speed = self.speed[1] + self.max_accelerate * timedelta
+    def accelerate(self, max_speed, acceleration, timedelta):
+        if acceleration > self.max_accelerate:
+            acceleration = self.max_accelerate
+
+        new_speed = self.speed[1] + acceleration * timedelta
         if new_speed > max_speed:
             new_speed = max_speed
 
