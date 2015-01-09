@@ -1,15 +1,17 @@
 import random
 
+
 class Vehicle:
-    t_react = 1.
-    v_properties = [(2., 10.,3), (3., 12., 2), (0., 10., 3)]
+    v_properties = [(2., 10., 3), (3., 12., 2), (0., 10., 3)]
 
-    def __init__(self, speed, location, v_type):
-        self.speed = [speed, speed, ]
-
+    def __init__(self, speed, location, v_type, tick, t_react):
+        self.t_react = t_react
+        buffer_size = int(t_react / tick) + 1
+        self.speed = [speed] * buffer_size
         self.location = location
         self.v_type = v_type
-        self.max_accelerate, self.max_brake, self.length = self.v_properties[v_type]
+        self.max_accelerate, self.max_brake, self.length = \
+            self.v_properties[v_type]
 
     def set_location(self, location):
         self.location = location
@@ -23,7 +25,6 @@ class Vehicle:
         self.speed.remove(self.speed[0])
         self.speed.append(new_speed)
 
-
     def accelerate(self, max_speed, acceleration, timedelta):
         if acceleration > self.max_accelerate:
             acceleration = self.max_accelerate
@@ -34,9 +35,9 @@ class Vehicle:
 
         self.set_next_speed(new_speed)
 
+
 def reactiontime():
     mu, sigma, theta = (0.19, 0.01, 0.02)
     gau = random.gauss(mu, sigma)
     exp = random.gammavariate(1, theta)
     return (gau + exp)
-

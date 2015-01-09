@@ -8,15 +8,18 @@ from edge import Edge
 from canvas import Canvas
 from pygame.locals import QUIT, KEYDOWN, K_ESCAPE
 
+
 def main():
+    tick = 0.1
+    t_react = 0.1
     myCanvas = Canvas()
     myEdge = Edge([[0, 100], [500, 100]])
-    myEdge.add_vehicle(0., 100., 1)
+    myEdge.add_vehicle(0., 400., 2, tick, t_react)
     for i in range(9, -1, -1):
-        myEdge.add_vehicle(random.randint(0, 10), i * 10., 1)
+        myEdge.add_vehicle(random.randint(0, 10), i * 20., 1, tick, t_react)
 
     env = simpy.Environment()
-    env.process(simulate(env, myEdge, 1., myCanvas))
+    env.process(simulate(env, myEdge, 0.1, myCanvas))
     env.run(until=100)
     plt.show()
 
@@ -36,14 +39,14 @@ def simulate(env, edge, tick, myCanvas):
             myCanvas.draw_vehicle(vehicle, edge)
 
         myCanvas.update_screen()
-        #p = 0.4
-        #if random.random() < p:
-        #    edge.add_vehicle(40, 0., 0)
+        p = 0.05
+        if random.random() < p:
+            edge.add_vehicle(10, 0., 0, 0.1, 0.1)
         print("time:", env.now)
         yield env.timeout(tick)
         if(len(edge.vehicles) == 0):
             break
-        plt.pause(0.05)
+        plt.pause(0.01)
 
 
 if __name__ == '__main__':

@@ -5,7 +5,7 @@ from vehicle import Vehicle
 
 class Edge:
     vehicles = []
-    max_speed = 40
+    max_speed = 30
     marge = 1.0
 
     def __init__(self, locations):
@@ -15,8 +15,8 @@ class Edge:
             math.sqrt(math.pow(locations[1][0] - locations[0][0], 2) +
                       math.pow(locations[1][1] - locations[0][1], 2))
 
-    def add_vehicle(self, speed, location, v_type):
-        self.vehicles.append(Vehicle(speed, location, v_type))
+    def add_vehicle(self, speed, location, v_type, tick, t_react):
+        self.vehicles.append(Vehicle(speed, location, v_type, tick, t_react))
 
     def move_vehicles(self, timedelta):
         if(len(self.vehicles) == 0):
@@ -114,7 +114,7 @@ class Edge:
                 '''
                 delta_t = 2. * (gap - needed_gap) / relative_speed
                 acc_adj = relative_speed / delta_t
-                if (acc_adj > 2.0 or gap < 2 * needed_gap):
+                if (acc_adj > 1.0 or gap < 2 * needed_gap):
                     new_speed = current_speed - acc_adj
                     acc_adj = current_speed - new_speed
                     if acc_adj > vehicle.max_brake:
