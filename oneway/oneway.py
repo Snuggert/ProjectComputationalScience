@@ -16,7 +16,7 @@ def main():
         myEdge.add_vehicle(random.randint(0, 10), i * 10., 1)
 
     env = simpy.Environment()
-    env.process(simulate(env, myEdge, 0.1, myCanvas))
+    env.process(simulate(env, myEdge, 1., myCanvas))
     env.run(until=100)
     plt.show()
 
