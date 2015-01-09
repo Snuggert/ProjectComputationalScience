@@ -4,9 +4,9 @@ import random
 class Vehicle:
     v_properties = [(2., 10., 3), (3., 12., 2), (0., 10., 3)]
 
-    def __init__(self, speed, location, v_type, tick, t_react):
-        self.t_react = t_react
-        buffer_size = int(t_react / tick) + 1
+    def __init__(self, speed, location, v_type, tick):
+        self.t_react = reactiontime(tick)
+        buffer_size = int(self.t_react / tick) + 1
         self.speed = [speed] * buffer_size
         self.location = location
         self.v_type = v_type
@@ -36,8 +36,10 @@ class Vehicle:
         self.set_next_speed(new_speed)
 
 
-def reactiontime():
+def reactiontime(tick):
     mu, sigma, theta = (0.19, 0.01, 0.02)
     gau = random.gauss(mu, sigma)
     exp = random.gammavariate(1, theta)
-    return (gau + exp)
+    if(gau <= 0):
+        return reactiontime()
+    return int((gau + exp) * (1 / tick) + 0.5) / (1 / tick)

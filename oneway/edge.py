@@ -15,8 +15,8 @@ class Edge:
             math.sqrt(math.pow(locations[1][0] - locations[0][0], 2) +
                       math.pow(locations[1][1] - locations[0][1], 2))
 
-    def add_vehicle(self, speed, location, v_type, tick, t_react):
-        self.vehicles.append(Vehicle(speed, location, v_type, tick, t_react))
+    def add_vehicle(self, speed, location, v_type, tick):
+        self.vehicles.append(Vehicle(speed, location, v_type, tick))
 
     def move_vehicles(self, timedelta):
         if(len(self.vehicles) == 0):
@@ -34,13 +34,9 @@ class Edge:
             '''
             Move vehicle
             '''
-            print "auto %d begint op locatie %.2f met snelheid %.2f" % \
-                (i, vehicle.location, vehicle.speed[0])
             new_location = vehicle.location + timedelta * 0.5 * \
                 (vehicle.speed[0] + vehicle.speed[1])
             current_speed = vehicle.speed[1]
-            print "rijdt naar %.2f met eindsnelheid %.2f" % \
-                (new_location, current_speed)
             vehicle.location = new_location
 
             # make a decision for each vehicle (that is not in front)
@@ -54,11 +50,8 @@ class Edge:
                 gap = vehicle_infront.location - vehicle.location
                 params = min_dist, vehicle.max_brake, vehicle.t_react
                 needed_gap = find_min_gap(vel0, params)
-                print "--> Gat is %.2f" % gap
                 relative_speed = current_speed - vehicle_infront.speed[0]
                 min_gap = find_min_gap(current_speed, params)
-                print "min_gap: %.2f" % min_gap
-                print "Needed_gap is %.2f" % needed_gap
 
                 '''
                 Check for collision
@@ -70,11 +63,11 @@ class Edge:
                 Driving too close to the vehicle in front
                 '''
                 if gap < min_gap:
-                    new_speed = 2. / timedelta * (gap - min_gap) + 2. * vel0 - current_speed
+                    new_speed = 2. / timedelta * (gap - min_gap) + 2. * vel0 \
+                        - current_speed
                     acc_adj = new_speed - current_speed
                     if acc_adj < - vehicle.max_brake:
                         acc_adj = - vehicle.max_brake
-                    print "te dichtbij: verander snelheid met : %.2f" % acc_adj
                     vehicle.set_next_speed(new_speed)
                     continue
 
@@ -82,12 +75,11 @@ class Edge:
                 Driving the same speed as the vehicle in front
                 '''
                 if abs(relative_speed) < 0.5:
-                    if gap > min_gap + vehicle.max_accelerate * timedelta * timedelta:
-                        vehicle.accelerate(self.max_speed, vehicle.max_accelerate, timedelta)
-                        print "accelereren"
-
+                    if gap > min_gap + vehicle.max_accelerate * \
+                            timedelta * timedelta:
+                        vehicle.accelerate(self.max_speed,
+                                           vehicle.max_accelerate, timedelta)
                     else:
-                        print "zelfde snelheid houden"
                         vehicle.set_next_speed(vel0)
                     continue
 
@@ -100,11 +92,9 @@ class Edge:
                         acc_adj = (-relative_speed) / delta_t
                         if acc_adj > vehicle.max_accelerate:
                             acc_adj = vehicle.max_accelerate
-                        print "hij versnelt met %.2f m/s2 (t = %.2f)" % \
                             (acc_adj, delta_t)
                     else:
                         acc_adj = vehicle.max_accelerate
-                        print "maximaal accelereren"
 
                     vehicle.accelerate(self.max_speed, acc_adj, timedelta)
                     continue
@@ -120,17 +110,14 @@ class Edge:
                     if acc_adj > vehicle.max_brake:
                         acc_adj = vehicle.max_brake
                         print "remmen!"
-                    print "hij gaat zijn snelheid aanpassen met %.2f m/s2" % \
-                        (-acc_adj)
                     vehicle.set_next_speed(new_speed)
                 else:
-                    print "hij gaat versnellen (t = %.2f, a was %.2f m/s2)" % \
-                        (delta_t, -acc_adj)
-                    vehicle.accelerate(self.max_speed, vehicle.max_accelerate, timedelta)
+                    vehicle.accelerate(self.max_speed, vehicle.max_accelerate,
+                                       timedelta)
 
             else:
-                vehicle.accelerate(self.max_speed, vehicle.max_accelerate,timedelta)
-            print ""
+                vehicle.accelerate(self.max_speed,
+                                   vehicle.max_accelerate, timedelta)
 
     def plot_vehicles(self):
         vehicles_xy = [[], []]
@@ -142,6 +129,7 @@ class Edge:
         plt.draw()
         plt.pause(0.1)
         plt.clf()
+
 
 def find_min_gap(v_current, params):
     min_dist, max_brake, t_react = params

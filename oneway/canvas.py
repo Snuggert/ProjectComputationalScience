@@ -25,20 +25,22 @@ class Canvas:
         ratio = vehicle.location / edge.edgesize
         scaled_x, scaled_y = \
             self.scale_to_screen(edge,
-                               int((edge.locations[1][0] -
-                                   edge.locations[0][0]) * ratio +
-                                   edge.locations[0][0]),
-                               int((edge.locations[1][1] -
-                                   edge.locations[0][1]) * ratio +
-                                   edge.locations[0][1]))
+                                 int((edge.locations[1][0] -
+                                     edge.locations[0][0]) * ratio +
+                                     edge.locations[0][0]),
+                                 int((edge.locations[1][1] -
+                                     edge.locations[0][1]) * ratio +
+                                     edge.locations[0][1]))
         x_scale = self.screen.get_width() / edge.locations[1][0]
-        scaled_car = pygame.transform.scale(self.car_image, (int(6 * x_scale),
-                                                             3 * x_scale))
+        scaled_car = pygame.transform.scale(self.car_image,
+                                            (int(vehicle.length * x_scale),
+                                                2 * x_scale))
         self.screen.blit(scaled_car, (scaled_x, scaled_y))
 
     def scale_to_screen(self, edge, x, y):
         scaled_x = int(x * (self.screen.get_width() /
-                           float(edge.locations[1][0] - edge.locations[0][0])))
+                            float(edge.locations[1][0] -
+                                  edge.locations[0][0])))
         scaled_y = int(self.screen.get_height() / 2.) + y
 
         return scaled_x, scaled_y

@@ -11,16 +11,15 @@ from pygame.locals import QUIT, KEYDOWN, K_ESCAPE
 
 def main():
     tick = 0.1
-    t_react = 0.1
     myCanvas = Canvas()
     myEdge = Edge([[0, 100], [500, 100]])
-    myEdge.add_vehicle(0., 400., 2, tick, t_react)
+    myEdge.add_vehicle(0., 400., 1, tick)
     for i in range(9, -1, -1):
-        myEdge.add_vehicle(random.randint(0, 10), i * 20., 1, tick, t_react)
+        myEdge.add_vehicle(random.randint(0, 10), i * 20., 1, tick)
 
     env = simpy.Environment()
     env.process(simulate(env, myEdge, 0.1, myCanvas))
-    env.run(until=100)
+    env.run(until=500)
     plt.show()
 
 
@@ -39,15 +38,15 @@ def simulate(env, edge, tick, myCanvas):
             myCanvas.draw_vehicle(vehicle, edge)
 
         myCanvas.update_screen()
-        p = 0.05
+        p = 0.015
         if random.random() < p:
-            edge.add_vehicle(10, 0., 0, 0.1, 0.1)
-        print("time:", env.now)
+            edge.add_vehicle(10, 0., 0, 0.1)
+
+        if(round(env.now, 1) % 10.0 == 0):
+            print "time:", round(env.now, 1)
         yield env.timeout(tick)
         if(len(edge.vehicles) == 0):
             break
-        plt.pause(0.01)
-
 
 if __name__ == '__main__':
     main()
