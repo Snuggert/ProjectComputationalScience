@@ -55,18 +55,16 @@ class Edge:
                 params = min_dist, vehicle.max_brake, vehicle.t_react
                 needed_gap = find_min_gap(vel0, params)
                 print "--> Gat is %.2f" % gap
+                relative_speed = current_speed - vehicle_infront.speed[0]
+                min_gap = find_min_gap(current_speed, params)
+                print "min_gap: %.2f" % min_gap
+                print "Needed_gap is %.2f" % needed_gap
 
                 '''
                 Check for collision
                 '''
-                print "Needed_gap is %.2f" % needed_gap
                 if gap < vehicle_infront.length:
                     print "FATAL ERROR!!! >:( "
-                    self.vehicles = []
-
-                relative_speed = current_speed - vehicle_infront.speed[0]
-                min_gap = find_min_gap(current_speed, params)
-                print "min_gap: %.2f" % min_gap
 
                 '''
                 Driving too close to the vehicle in front
@@ -77,7 +75,7 @@ class Edge:
                     if acc_adj < - vehicle.max_brake:
                         acc_adj = - vehicle.max_brake
                     print "te dichtbij: verander snelheid met : %.2f" % acc_adj
-                    vehicle.set_next_speed(current_speed + acc_adj)
+                    vehicle.set_next_speed(new_speed)
                     continue
 
                 '''
@@ -110,8 +108,6 @@ class Edge:
 
                     vehicle.accelerate(self.max_speed, acc_adj, timedelta)
                     continue
-
-
 
                 '''
                 Driving faster than the vehicle in front
