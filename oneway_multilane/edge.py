@@ -41,8 +41,8 @@ class Edge:
     def check_location(self, min_loc, max_loc):
         for vehicle in self.vehicles:
             if(max_loc > vehicle.location > min_loc):
-                return True
-        return False
+                return False
+        return True
 
     def remove_vehicle_from_neigbors(self, vehicle):
         try:
@@ -105,9 +105,10 @@ class Edge:
                     if acc_adj < - vehicle.max_brake:
                         acc_adj = - vehicle.max_brake
                     try:
-                        self.inner_edge.add_vehicle(vehicle, True)
-                        vehicle.set_next_speed(current_speed +
-                                               vehicle.max_accelerate)
+                        if(self.inner_edge.check_location(vehicle.location - 20, vehicle.location + 20)):
+                            self.inner_edge.add_vehicle(vehicle, True)
+                            vehicle.set_next_speed(current_speed +
+                                                   vehicle.max_accelerate)
                     except AttributeError:
                         vehicle.set_next_speed(new_speed)
                     continue
