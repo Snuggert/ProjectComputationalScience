@@ -2,7 +2,7 @@ import random
 
 
 class Vehicle:
-    v_properties = [(2., 10., 3), (3., 12., 2), (0., 10., 3)]
+    v_properties = [(2., 10., 3, 1.), (3., 12., 2, 1.), (0., 10., 3, 1.)]
 
     def __init__(self, speed, location, v_type, tick):
         self.t_react = reactiontime(tick)
@@ -10,7 +10,7 @@ class Vehicle:
         self.speed = [speed] * buffer_size
         self.location = location
         self.v_type = v_type
-        self.max_accelerate, self.max_brake, self.length = \
+        self.max_accelerate, self.max_brake, self.length, self.mass = \
             self.v_properties[v_type]
 
     def set_location(self, location):
@@ -19,8 +19,6 @@ class Vehicle:
     def set_next_speed(self, new_speed):
         if new_speed < 0:
             new_speed = 0.
-        elif new_speed < self.speed[1] - self.max_brake:
-            new_speed = self.speed[1] - self.max_brake
 
         self.speed.remove(self.speed[0])
         self.speed.append(new_speed)
