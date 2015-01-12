@@ -23,14 +23,13 @@ class Canvas:
 
     def draw_vehicle(self, vehicle, edge):
         ratio = vehicle.location / edge.edgesize
-        scaled_x, scaled_y = \
-            self.scale_to_screen(edge,
-                                 int((edge.locations[1][0] -
-                                     edge.locations[0][0]) * ratio +
-                                     edge.locations[0][0]),
-                                 int((edge.locations[1][1] -
-                                     edge.locations[0][1]) * ratio +
-                                     edge.locations[0][1]))
+
+        edge_x = int((edge.locations[1][0] - edge.locations[0][0]) * ratio +
+                     edge.locations[0][0])
+        edge_y = int((edge.locations[1][1] - edge.locations[0][1]) * ratio +
+                     edge.locations[0][1])
+
+        scaled_x, scaled_y = self.scale_to_screen(edge, edge_x, edge_y)
         x_scale = self.screen.get_width() / edge.locations[1][0]
         scaled_car = pygame.transform.scale(self.car_image,
                                             (int(vehicle.length * x_scale),
