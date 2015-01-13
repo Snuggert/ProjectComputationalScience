@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 class Edge:
     max_speed = 30
     marge = 1.0
+    max_count_accident = 10
 
     def __init__(self, locations):
         self.id = id
