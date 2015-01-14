@@ -1,6 +1,7 @@
 import math
 import matplotlib.pyplot as plt
 
+
 class Edge:
     marge = 1.0
     max_count_accident = 10
@@ -17,20 +18,8 @@ class Edge:
         self.to_remove = []
         self.collisions = []
 
-    def move_vehicles(self):
-        # remove vehicles
-        timedelta = self.timedelta
-
     def add_vehicle(self, vehicle):
         self.vehicles.append(vehicle)
-
-    def move_vehicles(self, timedelta):
-        # remove vehicles
-        for vehicle in self.to_remove:
-            if vehicle in self.vehicles:
-                self.vehicles.remove(vehicle)
-            self.to_remove.remove(vehicle)
-
 
     def move_vehicles(self):
         timedelta = self.timedelta

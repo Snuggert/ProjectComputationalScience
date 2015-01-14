@@ -2,11 +2,12 @@ import random
 
 
 class Vehicle:
-    v_properties = {"car":(2., 10., 3, 1), "truck": (3., 12., 2, 1), \
-    "broken": (0., 10., 3, 1)}
+    v_properties = {"car": (2., 10., 3, 1), "truck": (3., 12., 2, 1),
+                    "broken": (0., 10., 3, 1)}
 
     def __init__(self, speed, location, v_type, tick):
         self.t_react = reactiontime(tick)
+        self.auto_max = automax()
         buffer_size = int(self.t_react / tick) + 1
         self.speed = [speed] * buffer_size
         self.location = location
@@ -29,8 +30,8 @@ class Vehicle:
             acceleration = self.max_acc
 
         new_speed = self.speed[1] + acceleration * timedelta
-        if new_speed > max_speed:
-            new_speed = max_speed
+        if new_speed > max_speed + self.auto_max:
+            new_speed = max_speed + self.auto_max
 
         self.set_next_speed(new_speed)
 
@@ -42,3 +43,7 @@ def reactiontime(tick):
     if(gau <= 0):
         return reactiontime()
     return int((gau + exp) * (1 / tick) + 0.5) / (1 / tick)
+
+
+def automax():
+    return int(random.normalvariate(0., 1.) * 10) / 10.0

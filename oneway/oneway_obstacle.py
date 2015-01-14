@@ -8,7 +8,7 @@ tick = 0.1
 init_speed = 40
 init_pos = 0.
 veh_type = "car"
-prob = 0.2
+prob = 0.01
 
 ci = []
 cb = []
