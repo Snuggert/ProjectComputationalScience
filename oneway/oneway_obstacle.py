@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from vehicle import Vehicle
 
 loc = [[0, 0], [900, 1200]]
-tick = 0.5
+tick = 0.1
 init_speed = 40
 init_pos = 0.
 veh_type = "car"
@@ -14,7 +14,7 @@ ci = []
 cb = []
 
 myEdge = Edge(loc, 40, tick)
-myEdge.add_vehicle(0, 1500, 2)
+myEdge.add_vehicle(Vehicle(0, 1500, 'broken', tick))
 
 t_last = 0
 t0 = 0
@@ -26,60 +26,60 @@ braking = False
 start_writing = False
 
 for t in range(N):
-	print "\nt = %d\n" % t
-	if random.random() < prob:
-		myEdge.add_vehicle(init_speed, init_pos, veh_type)
+    print "\nt = %d\n" % t
+    if random.random() < prob:
+        myEdge.add_vehicle(Vehicle(init_speed, init_pos, veh_type, tick))
 
-	n = len(myEdge.vehicles) 
+    n = len(myEdge.vehicles) 
 
-	if braking:
-		print "er wordt geremd door auto %d" % last_fast
-		last_fast += 1
-		braking = False
-		if n > last_fast and start_writing:
-			ci.append((t * tick, 1500 - myEdge.vehicles[last_fast].location))
+    if braking:
+        print "er wordt geremd door auto %d" % last_fast
+        last_fast += 1
+        braking = False
+        if n > last_fast and start_writing:
+            ci.append((t * tick, 1500 - myEdge.vehicles[last_fast].location))
 
-	if n > last_fast:
-		fast_car = myEdge.vehicles[last_fast]
-		a = fast_car.speed[1] - fast_car.speed[0]
-		if a < -2:
-			braking = True
-
-
-	if n > last_stopped + 1:
-		next_car = myEdge.vehicles[last_stopped + 1]
-		if abs(next_car.speed[0]) < 0.01:
-			if last_stopped == 0:
-				t0 = t * tick
-				start_writing = True
-
-			last_stopped += 1
-			print "auto %d is gestopt" % last_stopped
-			cb.append((t * tick, 1500 - next_car.location))
+    if n > last_fast:
+        fast_car = myEdge.vehicles[last_fast]
+        a = fast_car.speed[1] - fast_car.speed[0]
+        if a < -2:
+            braking = True
 
 
-	myEdge.move_vehicles()
-	myEdge.plot_vehicles()
+    if n > last_stopped + 1:
+        next_car = myEdge.vehicles[last_stopped + 1]
+        if abs(next_car.speed[0]) < 0.01:
+            if last_stopped == 0:
+                t0 = t * tick
+                start_writing = True
+
+            last_stopped += 1
+            print "auto %d is gestopt" % last_stopped
+            cb.append((t * tick, 1500 - next_car.location))
+
+
+    myEdge.move_vehicles()
+    myEdge.plot_vehicles()
 
 
 for i in cb:
-	print i
+    print i
 
 x2, y = zip(*cb)
 n = len(x2)
 x = []
 for t in x2:
-	x.append(t - t0)
+    x.append(t - t0)
 plt.plot(x, y, "b-*")
 
 for i in ci:
-	print i
+    print i
 
 x2, y = zip(*ci)
 n = len(x2)
 x = []
 for t in x2:
-	x.append(t - t0)
+    x.append(t - t0)
 plt.plot(x, y, "r-*")
 
 plt.xlabel("time in seconds")

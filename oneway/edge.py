@@ -32,7 +32,8 @@ class Edge:
             self.to_remove.remove(vehicle)
 
 
-    def move_vehicles(self, timedelta):
+    def move_vehicles(self):
+        timedelta = self.timedelta
         # remove vehicles
         for vehicle in self.to_remove:
             if vehicle in self.vehicles:

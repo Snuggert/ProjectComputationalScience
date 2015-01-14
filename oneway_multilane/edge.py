@@ -163,7 +163,7 @@ class Edge:
                 Check if it's possible to change lanes inward.
                 '''
                 try:
-                    if(self.outer_edge.check_location(vehicle.location - 10., vehicle.location + 10)):
+                    if(self.outer_edge.check_location(vehicle.location - 20., vehicle.location + 10)):
                         index = self.outer_edge.add_vehicle(vehicle, True)
                         if index == 0:
                             vehicle.accelerate(self.max_speed,
