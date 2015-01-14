@@ -32,13 +32,13 @@ class Edge:
 
         if(len(self.vehicles) == 0):
             self.vehicles.append(vehicle)
-            return
+            return 0
         index = 0
         while True:
             if(index == len(self.vehicles) or
                vehicle.location > self.vehicles[index].location):
                 self.vehicles.insert(index, vehicle)
-                return
+                return index
             index += 1
 
     def check_location(self, min_loc, max_loc):
@@ -159,6 +159,32 @@ class Edge:
                         self.collisions.append(veh)
                         veh.count_to_remove = 0
                     continue
+                '''
+                Check if it's possible to change lanes inward.
+                '''
+                try:
+                    if(self.outer_edge.check_location(vehicle.location - 10., vehicle.location + 10)):
+                        index = self.outer_edge.add_vehicle(vehicle, True)
+                        if index == 0:
+                            vehicle.accelerate(self.max_speed,
+                                               vehicle.max_accelerate,
+                                               timedelta)
+                            continue
+                        # observe vehicle in front
+                        vehicle_infront = self.outer_edge.vehicles[index - 1]
+                        vel0 = vehicle_infront.speed[0]
+                        relative_speed = current_speed - vel0
+
+                        # find parameters for this vehicle
+                        min_dist = vehicle_infront.length + self.marge
+                        params = min_dist, vehicle.max_brake, vehicle.t_react
+
+                        # find the gap
+                        gap = vehicle_infront.location - vehicle.location
+                        min_gap = find_min_gap(current_speed, params)
+                        needed_gap = find_min_gap(vel0, params)
+                except AttributeError:
+                    pass
 
                 '''
                 Driving too close to the vehicle in front
