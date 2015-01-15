@@ -33,6 +33,15 @@ class Edge:
                 return index
             index += 1
 
+    def add_neighbor(self, edge, inner):
+        if self.edgesize == edge.edgesize:
+            if inner:
+                self.inner_edge = edge
+            else:
+                self.outer_edge = edge
+        else:
+            return 0
+
     def remove_vehicle_from_neigbors(self, vehicle):
         try:
             self.inner_edge.vehicles.remove(vehicle)
@@ -125,7 +134,7 @@ class Edge:
                     continue
 
                 '''
-                Check if it's possible to change lanes inward.
+                Check if it's possible to change lanes outward.
                 '''
                 if(self.check_outward(vehicle)):
                     index = self.outer_edge.add_vehicle(vehicle, True)
@@ -212,8 +221,16 @@ class Edge:
                 '''
                 delta_t = 2. * (gap - needed_gap) / relative_speed
                 acc_adj = relative_speed / delta_t
-                # make an appropriate deceleration
+                # make an appropriate deceleration or change lanes
                 if (acc_adj > 2.0 or gap < 2 * needed_gap):
+
+                    if(self.check_outward(vehicle)):
+                        self.inner_edge.add_vehicle(vehicle, True)
+                        vehicle.accelerate(self.inner_edge.max_speed,
+                                           vehicle.max_acc,
+                                           self.inner_edge.timedelta)
+                        continue
+
                     new_speed = current_speed - acc_adj
                     acc_adj = current_speed - new_speed
                     if acc_adj > vehicle.max_brake:
@@ -235,8 +252,8 @@ class Edge:
     '''
     def check_outward(self, vehicle):
         try:
-            if(self.outer_edge.check_location(vehicle.location - 10.,
-                                              vehicle.location + 10)):
+            if(self.outer_edge.check_location(vehicle.location - 15.,
+                                              vehicle.location + 20)):
                 return True
         except AttributeError:
             return False

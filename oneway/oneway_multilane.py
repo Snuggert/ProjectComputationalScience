@@ -13,8 +13,8 @@ from pygame.locals import QUIT, KEYDOWN, K_ESCAPE
 def main():
     tick = 0.1
     myCanvas = Canvas()
-    myEdge = Edge([[0, 100], [500, 100]])
-    myEdgeNeighbor = Edge([[0, 93], [500, 93]])
+    myEdge = Edge([[0, 100], [500, 100]], 30., tick)
+    myEdgeNeighbor = Edge([[0, 93], [500, 93]], 30, tick)
 
     myEdge.add_neighbor(myEdgeNeighbor, True)
     myEdgeNeighbor.add_neighbor(myEdge, False)
@@ -41,14 +41,14 @@ def simulate(env, edges, tick, myCanvas):
         myCanvas.clear_screen((0, 0, 0))
         for edge in edges:
             myCanvas.draw_edge(edge)
-            edge.move_vehicles(tick)
+            edge.move_vehicles()
             for vehicle in edge.vehicles:
                 myCanvas.draw_vehicle(vehicle, edge)
 
         myCanvas.update_screen()
-        p = 0.015
+        p = 0.05
         if random.random() < p:
-            edges[0].add_vehicle(Vehicle(10, 0., 'car', 0.1))
+            edges[0].add_vehicle(Vehicle(20, 0., 'car', 0.1))
 
         if(round(env.now, 1) % 10.0 == 0):
             print "time:", round(env.now, 1)
