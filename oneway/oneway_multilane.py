@@ -19,9 +19,9 @@ def main():
     myEdge.add_neighbor(myEdgeNeighbor, True)
     myEdgeNeighbor.add_neighbor(myEdge, False)
 
-    myEdge.add_vehicle(Vehicle(0., 400., 1, tick))
+    myEdge.add_vehicle(Vehicle(0., 400., 'broken', tick))
     for i in range(9, -1, -1):
-        new_vehicle = Vehicle(random.randint(0, 10), i * 20., 1, tick)
+        new_vehicle = Vehicle(random.randint(0, 10), i * 20., 'car', tick)
         myEdge.add_vehicle(new_vehicle)
 
     env = simpy.Environment()
@@ -48,7 +48,7 @@ def simulate(env, edges, tick, myCanvas):
         myCanvas.update_screen()
         p = 0.015
         if random.random() < p:
-            edges[0].add_vehicle(Vehicle(10, 0., 0, 0.1))
+            edges[0].add_vehicle(Vehicle(10, 0., 'car', 0.1))
 
         if(round(env.now, 1) % 10.0 == 0):
             print "time:", round(env.now, 1)

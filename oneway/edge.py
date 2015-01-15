@@ -18,8 +18,36 @@ class Edge:
         self.to_remove = []
         self.collisions = []
 
-    def add_vehicle(self, vehicle):
-        self.vehicles.append(vehicle)
+    def add_vehicle(self, vehicle, remove=False):
+        if(remove):
+            self.remove_vehicle_from_neigbors(vehicle)
+
+        if(len(self.vehicles) == 0):
+            self.vehicles.append(vehicle)
+            return 0
+        index = 0
+        while True:
+            if(index == len(self.vehicles) or
+               vehicle.location > self.vehicles[index].location):
+                self.vehicles.insert(index, vehicle)
+                return index
+            index += 1
+
+    def remove_vehicle_from_neigbors(self, vehicle):
+        try:
+            self.inner_edge.vehicles.remove(vehicle)
+        except AttributeError:
+            pass
+        try:
+            self.outer_edge.vehicles.remove(vehicle)
+        except AttributeError:
+            pass
+
+    def check_location(self, min_loc, max_loc):
+        for vehicle in self.vehicles:
+            if(max_loc > vehicle.location > min_loc):
+                return False
+        return True
 
     def move_vehicles(self):
         timedelta = self.timedelta
@@ -33,10 +61,8 @@ class Edge:
                 print "auto weggesleept"
             self.to_remove.remove(vehicle)
 
-        num_vehicles = len(self.vehicles)
-
         # return if empty
-        if( num_vehicles == 0):
+        if(len(self.vehicles) == 0):
             return
 
         # move each vehicle and make decisions
@@ -68,7 +94,8 @@ class Edge:
                 if self.collision_check(i, begin_loc_speed):
                     continue
 
-                vehicle.accelerate(self.max_speed, -vehicle.max_brake, timedelta)
+                vehicle.accelerate(self.max_speed, -vehicle.max_brake,
+                                   timedelta)
                 continue
 
             # Make a decision for each vehicle (that is not in front or in an
@@ -98,11 +125,45 @@ class Edge:
                     continue
 
                 '''
+                Check if it's possible to change lanes inward.
+                '''
+                if(self.check_outward(vehicle)):
+                    index = self.outer_edge.add_vehicle(vehicle, True)
+                    if index == 0:
+                        vehicle.accelerate(self.max_speed,
+                                           vehicle.max_acc,
+                                           timedelta)
+                        continue
+                    # observe vehicle in front
+                    vehicle_infront = self.outer_edge.vehicles[index - 1]
+                    vel0 = vehicle_infront.speed[0]
+                    relative_speed = current_speed - vel0
+
+                    # find parameters for this vehicle
+                    min_dist = vehicle_infront.length + self.marge
+                    params = min_dist, vehicle.max_brake, vehicle.t_react
+
+                    # find the gap
+                    gap = vehicle_infront.location - vehicle.location
+                    min_gap = find_min_gap(current_speed, params)
+                    needed_gap = find_min_gap(vel0, params)
+
+                '''
                 Driving too close to the vehicle in front
                 '''
                 if gap < min_gap:
-                    # adjust the speed in a way that: next gap = current min_gap
-                    new_speed = 2. / timedelta * (gap - min_gap) + 2. * vel0 - current_speed
+                    if(self.check_inward(vehicle)):
+                        self.inner_edge.add_vehicle(vehicle, True)
+                        vehicle.accelerate(self.inner_edge.max_speed,
+                                           vehicle.max_acc,
+                                           self.inner_edge.timedelta)
+                        continue
+
+                    # adjust the speed in a way that:
+                    # next gap = current min_gap
+                    new_speed = 2. / timedelta * (gap - min_gap) + 2. * vel0 -\
+                        current_speed
+
                     acc_adj = new_speed - current_speed
                     if acc_adj < - vehicle.max_brake:
                         acc_adj = - vehicle.max_brake
@@ -119,7 +180,8 @@ class Edge:
                 if abs(relative_speed) < 0.5:
                     # there is enough space to accelerate
                     if gap > min_gap + vehicle.max_acc * timedelta * timedelta:
-                        vehicle.accelerate(self.max_speed, vehicle.max_acc, timedelta)
+                        vehicle.accelerate(self.max_speed, vehicle.max_acc,
+                                           timedelta)
 
                     # take the speed of the vehicle in front
                     else:
@@ -161,12 +223,33 @@ class Edge:
 
                 # accelerate if the car in front is far away
                 else:
-                    vehicle.accelerate(self.max_speed, vehicle.max_acc, timedelta)
+                    vehicle.accelerate(self.max_speed, vehicle.max_acc,
+                                       timedelta)
 
             else:
                 # accelerate
-                vehicle.accelerate(self.max_speed, vehicle.max_acc,timedelta)
+                vehicle.accelerate(self.max_speed, vehicle.max_acc, timedelta)
 
+    '''
+    Check if it's possible to change lanes outward.
+    '''
+    def check_outward(self, vehicle):
+        try:
+            if(self.outer_edge.check_location(vehicle.location - 10.,
+                                              vehicle.location + 10)):
+                return True
+        except AttributeError:
+            return False
+        return False
+
+    def check_inward(self, vehicle):
+        try:
+            if(self.inner_edge.check_location(vehicle.location - 30.,
+                                              vehicle.location + 10)):
+                return True
+        except AttributeError:
+            return False
+        return False
 
     def plot_vehicles(self):
         vehicles_xy = [[], []]
@@ -186,7 +269,6 @@ class Edge:
         plt.clf()
 
     def collision_check(self, i, begin_loc_speed):
-        num_vehicles = len(self.vehicles)
         timedelta = self.timedelta
         if i == 0:
             return False
@@ -197,7 +279,7 @@ class Edge:
         current_speed, vel0 = vehicle.speed[1], vehicle_infront.speed[0]
 
         collision = False
-        
+
         if gap < vehicle_infront.length:
             collision = True
             print "FATAL ERROR!!! >:( "
@@ -222,7 +304,7 @@ class Edge:
 
             # find the new velocity at which they both move
             m1, m2 = vehicle.mass, vehicle_infront.mass
-            avg_speed = (m1* v_coll + m2 * vel0) / (m1 + m2)
+            avg_speed = (m1 * v_coll + m2 * vel0) / (m1 + m2)
 
             # find the maximum deceleration for the clashed vehicles
             a1, a2 = vehicle.max_brake, vehicle_infront.max_brake
@@ -244,10 +326,10 @@ class Edge:
 
         return collision
 
+
 def find_min_gap(v_current, params):
     min_dist, max_brake, t_react = params
     t_brake_abs = v_current / max_brake
     x_brake_abs = (v_current * t_brake_abs) / 2.
     gap = x_brake_abs + min_dist
     return gap
-
