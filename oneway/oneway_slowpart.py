@@ -39,7 +39,7 @@ N = 300
 for t in range(N):
 	p = random.random()
 	if p < prob and t_last < (t - 1):
-		edges[0].add_vehicle(init_speed, init_pos, veh_type)
+		edges[0].add_vehicle(Vehicle(init_speed, init_pos, veh_type, tick))
 		t_last = t
 
 	for i in range(n - 1, -1, -1):

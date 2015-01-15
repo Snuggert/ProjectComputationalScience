@@ -22,14 +22,18 @@ class Vehicle:
         self.speed.append(new_speed)
 
     def accelerate(self, max_speed, acceleration, timedelta):
+        # driver faster than allowed
         if self.speed[1] > max_speed:
-            self.set_next_speed(self.speed[1] - 2)
-            return
+            acceleration = -2
 
+        # maximum acceleration reached
         if acceleration > self.max_acc:
             acceleration = self.max_acc
 
-        new_speed = self.speed[1] + acceleration * timedelta
+        # new speed found
+        new_speed = self.speed[1] + acceleration * self.t_react
+
+        # maximum speed reached
         if new_speed > max_speed + self.auto_max:
             new_speed = max_speed + self.auto_max
 
@@ -37,7 +41,7 @@ class Vehicle:
 
 
 def reactiontime(tick):
-    mu, sigma, theta = (0.19, 0.01, 0.02)
+    mu, sigma, theta = (0.18, 0.01, 0.02)
     gau = random.gauss(mu, sigma)
     exp = random.gammavariate(1, theta)
     if(gau <= 0):

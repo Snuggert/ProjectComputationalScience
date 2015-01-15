@@ -3,30 +3,29 @@ import random
 import matplotlib.pyplot as plt
 from vehicle import Vehicle
 
-loc = [[0, 0], [900, 1200]]
+loc = [[0, 0], [600, 800]]
 tick = 0.1
-init_speed = 40
+init_speed = 20
 init_pos = 0.
 veh_type = "car"
-prob = 0.01
+prob = 0.02
 
 ci = []
 cb = []
 
-myEdge = Edge(loc, 40, tick)
-myEdge.add_vehicle(Vehicle(0, 1500, 'broken', tick))
+myEdge = Edge(loc, 20, tick)
+myEdge.add_vehicle(Vehicle(0, 1000, 'broken', tick))
 
 t_last = 0
 t0 = 0
 
-N = 300
+N = 1300
 last_stopped = 0
 last_fast = 1
 braking = False
 start_writing = False
 
 for t in range(N):
-    print "\nt = %d\n" % t
     if random.random() < prob:
         myEdge.add_vehicle(Vehicle(init_speed, init_pos, veh_type, tick))
 
@@ -42,7 +41,7 @@ for t in range(N):
     if n > last_fast:
         fast_car = myEdge.vehicles[last_fast]
         a = fast_car.speed[1] - fast_car.speed[0]
-        if a < -2:
+        if a < -2 * tick:
             braking = True
 
 
@@ -59,11 +58,11 @@ for t in range(N):
 
 
     myEdge.move_vehicles()
-    myEdge.plot_vehicles()
+    #myEdge.plot_vehicles()
 
 
-for i in cb:
-    print i
+for veh in myEdge.vehicles:
+    print "location: %.2f, speed: %.2f" % (veh.location, veh.speed[0])
 
 x2, y = zip(*cb)
 n = len(x2)
@@ -71,9 +70,6 @@ x = []
 for t in x2:
     x.append(t - t0)
 plt.plot(x, y, "b-*")
-
-for i in ci:
-    print i
 
 x2, y = zip(*ci)
 n = len(x2)
