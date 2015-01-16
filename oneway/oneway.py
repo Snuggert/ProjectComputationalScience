@@ -42,7 +42,7 @@ def simulate(env, edge, tick, myCanvas):
             myCanvas.draw_vehicle(vehicle, edge)
 
         myCanvas.update_screen()
-        p = 0.015
+        p = 0.02
         if random.random() < p:
             edge.add_vehicle(Vehicle(10, 0., 'car', 0.1))
 

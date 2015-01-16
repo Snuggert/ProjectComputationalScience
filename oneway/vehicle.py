@@ -9,35 +9,32 @@ class Vehicle:
         self.t_react = reactiontime(tick)
         self.auto_max = automax()
         buffer_size = int(self.t_react / tick) + 1
-        self.speed = [speed] * buffer_size
+        self.acc = [0] * buffer_size
+        self.speed = speed
         self.location = location
         self.max_acc, self.max_brake, self.length, self.mass = \
             self.v_properties[v_type]
 
-    def set_next_speed(self, new_speed):
-        if new_speed < 0:
-            new_speed = 0.
+    def set_next_acc(self, new_acc):
+        if new_acc > self.max_acc:
+            new_acc = self.max_acc
+        elif new_acc < -self.max_brake:
+            new_acc = -self.max_brake
 
-        self.speed.remove(self.speed[0])
-        self.speed.append(new_speed)
+        self.acc.remove(self.acc[0])
+        self.acc.append(new_acc)
 
     def accelerate(self, max_speed, acceleration, timedelta):
         # driver faster than allowed
-        if self.speed[1] > max_speed:
+        if self.speed > max_speed:
             acceleration = -2
 
-        # maximum acceleration reached
-        if acceleration > self.max_acc:
-            acceleration = self.max_acc
-
-        # new speed found
-        new_speed = self.speed[1] + acceleration * self.t_react
+        self.set_next_acc(acceleration)
+        self.speed += self.acc[0] * timedelta
 
         # maximum speed reached
-        if new_speed > max_speed + self.auto_max:
-            new_speed = max_speed + self.auto_max
-
-        self.set_next_speed(new_speed)
+        if self.speed > max_speed + self.auto_max:
+            self.speed = max_speed + self.auto_max
 
 
 def reactiontime(tick):

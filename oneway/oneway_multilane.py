@@ -15,17 +15,20 @@ def main():
     myCanvas = Canvas()
     myEdge = Edge([[0, 100], [500, 100]], 30., tick)
     myEdgeNeighbor = Edge([[0, 93], [500, 93]], 30, tick)
+    myEdgeNeighborNeighbor = Edge([[0, 85], [500, 85]], 30, tick)
 
     myEdge.add_neighbor(myEdgeNeighbor, True)
     myEdgeNeighbor.add_neighbor(myEdge, False)
+    myEdgeNeighbor.add_neighbor(myEdgeNeighborNeighbor, True)
+    myEdgeNeighborNeighbor.add_neighbor(myEdgeNeighbor, False)
 
-    myEdge.add_vehicle(Vehicle(0., 400., 'broken', tick))
-    for i in range(9, -1, -1):
+    # myEdge.add_vehicle(Vehicle(0., 400., 'broken', tick))
+    for i in range(20, -1, -1):
         new_vehicle = Vehicle(random.randint(0, 10), i * 20., 'car', tick)
         myEdge.add_vehicle(new_vehicle)
 
     env = simpy.Environment()
-    env.process(simulate(env, [myEdge, myEdgeNeighbor], 0.1, myCanvas))
+    env.process(simulate(env, [myEdge, myEdgeNeighbor, myEdgeNeighborNeighbor], 0.1, myCanvas))
     env.run(until=500)
     plt.show()
 

@@ -47,9 +47,13 @@ class Edge:
             self.inner_edge.vehicles.remove(vehicle)
         except AttributeError:
             pass
+        except ValueError:
+            pass
         try:
             self.outer_edge.vehicles.remove(vehicle)
         except AttributeError:
+            pass
+        except ValueError:
             pass
 
     def check_location(self, min_loc, max_loc):
@@ -253,7 +257,7 @@ class Edge:
     def check_outward(self, vehicle):
         try:
             if(self.outer_edge.check_location(vehicle.location - 15.,
-                                              vehicle.location + 20)):
+                                              vehicle.location + 30)):
                 return True
         except AttributeError:
             return False
