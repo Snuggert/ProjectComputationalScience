@@ -25,8 +25,8 @@ def plot_vehicles(edges):
 	plt.clf()
 
 loc = [[0, 0], [600, 800]]
-prob = 0.5
-tick = 0.5
+prob = 0.2
+tick = 0.1
 init_speed = 20
 init_pos = 0
 veh_type = "car"

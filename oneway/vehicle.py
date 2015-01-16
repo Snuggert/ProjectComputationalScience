@@ -2,7 +2,7 @@ import random
 
 
 class Vehicle:
-    v_properties = {"car": (2., 10., 3, 1), "truck": (3., 12., 2, 1),
+    v_properties = {"car": (2., 10., 3, 1), "truck": (3., 4., 2, 4),
                     "broken": (0., 10., 3, 1)}
 
     def __init__(self, speed, location, v_type, tick):
@@ -16,6 +16,7 @@ class Vehicle:
             self.v_properties[v_type]
         self.loc_speed_old = (location - speed * tick, speed)
 
+
     def set_next_acc(self, new_acc):
         if new_acc > self.max_acc:
             new_acc = self.max_acc
@@ -27,7 +28,7 @@ class Vehicle:
 
     def accelerate(self, max_speed, acceleration, timedelta):
         # driver faster than allowed
-        if self.speed > max_speed:
+        if self.speed > max_speed + self.auto_max:
             acceleration = -2
 
         self.set_next_acc(acceleration)
@@ -38,6 +39,8 @@ class Vehicle:
             self.speed = max_speed + self.auto_max
         elif self.speed < 0:
             self.speed = 0
+
+        self.loc_speed_old = self.loc_speed_old[0], self.speed
 
 
 def reactiontime(tick):

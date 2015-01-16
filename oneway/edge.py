@@ -71,7 +71,6 @@ class Edge:
                 self.vehicles.remove(vehicle)
             if vehicle in self.collisions:
                 self.collisions.remove(vehicle)
-                print "auto weggesleept"
             self.to_remove.remove(vehicle)
 
         # return if empty
@@ -91,8 +90,6 @@ class Edge:
             vehicle.location = vehicle.location + timedelta * 0.5 * \
                 (old_speed + current_speed)
 
-            vehicle.loc_speed_old = (vehicle.location, vehicle.speed)
-
             # end of the lane reached
             if vehicle.location > self.edgesize:
                 self.to_remove.append(vehicle)
@@ -104,9 +101,10 @@ class Edge:
                     if vehicle.count_to_remove >= int(self.max_count_accident /
                                                       timedelta):
                         self.to_remove.append(vehicle)
+                        print "auto wordt weggesleept"
                         continue
 
-                if self.collision_check(i, (old_loc, old_speed)):
+                if self.collision_check(i):
                     continue
 
                 vehicle.accelerate(self.max_speed, -vehicle.max_brake,
@@ -136,8 +134,11 @@ class Edge:
                 '''
                 Check for collision
                 '''
-                if self.collision_check(i, (old_loc, old_speed)):
+                if self.collision_check(i):
                     continue
+
+                # no collision: save the new place and speed
+                vehicle.loc_speed_old = (vehicle.location, vehicle.speed)
 
                 '''
                 Check if it's possible to change lanes outward.
@@ -180,10 +181,9 @@ class Edge:
                         current_speed
 
                     acc_adj = new_speed - current_speed
-                    if acc_adj < - vehicle.max_brake:
-                        acc_adj = - vehicle.max_brake
+
                     # don't accelerate
-                    elif acc_adj > 0:
+                    if acc_adj > 0:
                         acc_adj = 0
 
                     vehicle.accelerate(self.max_speed, acc_adj, timedelta)
@@ -212,9 +212,7 @@ class Edge:
                     if gap < needed_gap:
                         delta_t = 2. * (needed_gap - gap) / (-relative_speed)
                         acc_adj = (-relative_speed) / delta_t
-                        if acc_adj > vehicle.max_acc:
-                            acc_adj = vehicle.max_acc
-                            (acc_adj, delta_t)
+
                     # maximal acceleration
                     else:
                         acc_adj = vehicle.max_acc
@@ -225,11 +223,17 @@ class Edge:
                 '''
                 Driving faster than the vehicle in front
                 '''
+                # be aware that the vehicle in an accident will stop
+                if vehicle_infront in self.collisions:
+                    relative_speed = current_speed
+
                 delta_t = 2. * (gap - needed_gap) / relative_speed
                 acc_adj = relative_speed / delta_t
+
                 # make an appropriate deceleration or change lanes
                 if (acc_adj > 2.0 or gap < 2 * needed_gap):
 
+                    # check lanes if possible
                     if(self.check_outward(vehicle)):
                         self.inner_edge.add_vehicle(vehicle, True)
                         vehicle.accelerate(self.inner_edge.max_speed,
@@ -237,11 +241,7 @@ class Edge:
                                            self.inner_edge.timedelta)
                         continue
 
-                    new_speed = current_speed - acc_adj
-                    acc_adj = current_speed - new_speed
-                    if acc_adj > vehicle.max_brake:
-                        acc_adj = vehicle.max_brake
-
+                    # decelerate in current lane
                     vehicle.accelerate(self.max_speed, -acc_adj, timedelta)
 
                 # accelerate if the car in front is far away
@@ -291,7 +291,7 @@ class Edge:
         plt.pause(0.00001)
         plt.clf()
 
-    def collision_check(self, i, begin_loc_speed):
+    def collision_check(self, i):
         timedelta = self.timedelta
         if i == 0:
             return False
@@ -299,7 +299,7 @@ class Edge:
         vehicle = self.vehicles[i]
         vehicle_infront = self.vehicles[i - 1]
         gap = vehicle_infront.location - vehicle.location
-        current_speed, vel0 = vehicle.speed, vehicle_infront.speed
+        
         collision = False
 
         if gap < vehicle_infront.length:
@@ -311,11 +311,11 @@ class Edge:
             vehicle.location = (vehicle_infront.location
                                 - vehicle_infront.length - 0.01)
 
-            loc0, v0 = begin_loc_speed
+            loc0, v0 = vehicle.loc_speed_old
+            current_speed, vel0 = vehicle.speed, vehicle_infront.speed
 
             dx = (vehicle_infront.location - vehicle_infront.length
                   - loc0)
-
             # find the velocity at which the vehicle clashed
             a = current_speed - v0
             if abs(a) < 0.01:
@@ -329,25 +329,19 @@ class Edge:
             m1, m2 = vehicle.mass, vehicle_infront.mass
             avg_speed = (m1 * v_coll + m2 * vel0) / (m1 + m2)
 
-            # find the maximum deceleration for the clashed vehicles
-            a1, a2 = vehicle.max_brake, vehicle_infront.max_brake
-            if a1 < a2:
-                avg_max_brake = (m1 * a1 + m2 * a2) / (m1 + m2)
-                vehicle.max_brake = avg_max_brake
-                vehicle_infront.max_brake = avg_max_brake
-
             # append to the list of collisions
             for veh in [vehicle, vehicle_infront]:
-                veh.speed = avg_speed
                 veh.accelerate(self.max_speed, -vehicle.max_brake, timedelta)
 
                 if veh not in self.collisions:
                     self.collisions.append(veh)
-                veh.count_to_remove = 0
 
-            vehicle_infront.loc_speed_old = (vehicle_infront.loc_speed_old[0],
-                                             avg_speed)
-            vehicle.loc_speed_old = (vehicle.location, avg_speed)
+                # adjust variables
+                veh.count_to_remove = 0
+                veh.loc_speed_old = veh.location, avg_speed
+                veh.speed = avg_speed
+
+
         return collision
 
 
