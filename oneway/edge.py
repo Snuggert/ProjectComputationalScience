@@ -84,12 +84,14 @@ class Edge:
             Move vehicle
             '''
             # start situation
-            begin_loc_speed = vehicle.location, vehicle.speed[0]
+            old_loc, old_speed = vehicle.loc_speed_old
 
             # new situation
-            current_speed = vehicle.speed[1]
+            current_speed = vehicle.speed
             vehicle.location = vehicle.location + timedelta * 0.5 * \
-                (vehicle.speed[0] + current_speed)
+                (old_speed + current_speed)
+
+            vehicle.loc_speed_old = (vehicle.location, vehicle.speed)
 
             # end of the lane reached
             if vehicle.location > self.edgesize:
@@ -104,7 +106,7 @@ class Edge:
                         self.to_remove.append(vehicle)
                         continue
 
-                if self.collision_check(i, begin_loc_speed):
+                if self.collision_check(i, (old_loc, old_speed)):
                     continue
 
                 vehicle.accelerate(self.max_speed, -vehicle.max_brake,
@@ -119,7 +121,7 @@ class Edge:
                 '''
                 # observe vehicle in front
                 vehicle_infront = self.vehicles[i - 1]
-                vel0 = vehicle_infront.speed[0]
+                vel0 = vehicle_infront.speed
                 relative_speed = current_speed - vel0
 
                 # find parameters for this vehicle
@@ -134,7 +136,7 @@ class Edge:
                 '''
                 Check for collision
                 '''
-                if self.collision_check(i, begin_loc_speed):
+                if self.collision_check(i, (old_loc, old_speed)):
                     continue
 
                 '''
@@ -149,7 +151,7 @@ class Edge:
                         continue
                     # observe vehicle in front
                     vehicle_infront = self.outer_edge.vehicles[index - 1]
-                    vel0 = vehicle_infront.speed[0]
+                    vel0 = vehicle_infront.speed
                     relative_speed = current_speed - vel0
 
                     # find parameters for this vehicle
@@ -286,7 +288,7 @@ class Edge:
         plt.plot(collision_xy[0], collision_xy[1], 'rs')
         plt.axis([0, self.edgesize, 0, 2])
         plt.draw()
-        plt.pause(0.001)
+        plt.pause(0.00001)
         plt.clf()
 
     def collision_check(self, i, begin_loc_speed):
@@ -297,8 +299,7 @@ class Edge:
         vehicle = self.vehicles[i]
         vehicle_infront = self.vehicles[i - 1]
         gap = vehicle_infront.location - vehicle.location
-        current_speed, vel0 = vehicle.speed[1], vehicle_infront.speed[0]
-
+        current_speed, vel0 = vehicle.speed, vehicle_infront.speed
         collision = False
 
         if gap < vehicle_infront.length:
@@ -311,6 +312,7 @@ class Edge:
                                 - vehicle_infront.length - 0.01)
 
             loc0, v0 = begin_loc_speed
+
             dx = (vehicle_infront.location - vehicle_infront.length
                   - loc0)
 
@@ -336,15 +338,16 @@ class Edge:
 
             # append to the list of collisions
             for veh in [vehicle, vehicle_infront]:
-                L = len(veh.speed)
-                for i in range(L):
-                    veh.speed[i] = avg_speed
+                veh.speed = avg_speed
                 veh.accelerate(self.max_speed, -vehicle.max_brake, timedelta)
 
                 if veh not in self.collisions:
                     self.collisions.append(veh)
                 veh.count_to_remove = 0
 
+            vehicle_infront.loc_speed_old = (vehicle_infront.loc_speed_old[0],
+                                             avg_speed)
+            vehicle.loc_speed_old = (vehicle.location, avg_speed)
         return collision
 
 

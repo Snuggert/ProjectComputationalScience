@@ -14,6 +14,7 @@ class Vehicle:
         self.location = location
         self.max_acc, self.max_brake, self.length, self.mass = \
             self.v_properties[v_type]
+        self.loc_speed_old = (location - speed * tick, speed)
 
     def set_next_acc(self, new_acc):
         if new_acc > self.max_acc:
@@ -35,6 +36,8 @@ class Vehicle:
         # maximum speed reached
         if self.speed > max_speed + self.auto_max:
             self.speed = max_speed + self.auto_max
+        elif self.speed < 0:
+            self.speed = 0
 
 
 def reactiontime(tick):
