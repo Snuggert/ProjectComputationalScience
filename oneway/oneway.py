@@ -47,7 +47,7 @@ def simulate(env, edge, tick, myCanvas):
         if(round(env.now, 1) % 10.0 == 0):
             print "time:", round(env.now, 1)
         yield env.timeout(tick)
-        plt.pause(0.01)
+        plt.pause(0.005)
 
 if __name__ == '__main__':
     main()

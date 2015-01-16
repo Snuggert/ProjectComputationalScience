@@ -17,6 +17,7 @@ class Edge:
         self.vehicles = []
         self.to_remove = []
         self.collisions = []
+        self.to_change = []
 
     def add_vehicle(self, vehicle, remove=False):
         if(remove):
@@ -79,6 +80,16 @@ class Edge:
 
         # move each vehicle and make decisions
         for i, vehicle in enumerate(self.vehicles):
+            '''
+            Check if vehicle wants to change lane next tick.
+            '''
+            if(len(vehicle.change_lane) > 0):
+                direction = vehicle.change_lane[0]
+                if(direction is not None):
+                    self.to_change.append(vehicle)
+                else:
+                    vehicle.change_lane.pop(0)
+
             '''
             Move vehicle
             '''
@@ -144,36 +155,20 @@ class Edge:
                 Check if it's possible to change lanes outward.
                 '''
                 if(self.check_outward(vehicle)):
-                    index = self.outer_edge.add_vehicle(vehicle, True)
-                    if index == 0:
-                        vehicle.accelerate(self.max_speed,
-                                           vehicle.max_acc,
-                                           timedelta)
-                        continue
-                    # observe vehicle in front
-                    vehicle_infront = self.outer_edge.vehicles[index - 1]
-                    vel0 = vehicle_infront.speed
-                    relative_speed = current_speed - vel0
-
-                    # find parameters for this vehicle
-                    min_dist = vehicle_infront.length + self.marge
-                    params = min_dist, vehicle.max_brake, vehicle.t_react
-
-                    # find the gap
-                    gap = vehicle_infront.location - vehicle.location
-                    min_gap = find_min_gap(current_speed, params)
-                    needed_gap = find_min_gap(vel0, params)
+                    if(len(vehicle.change_lane) == 0):
+                        vehicle.change_lane = [None] * int(round(1. /
+                                                                 timedelta, 0))
+                        vehicle.change_lane.insert(0, 'outward')
 
                 '''
                 Driving too close to the vehicle in front
                 '''
                 if gap < min_gap:
                     if(self.check_inward(vehicle)):
-                        self.inner_edge.add_vehicle(vehicle, True)
-                        vehicle.accelerate(self.inner_edge.max_speed,
-                                           vehicle.max_acc,
-                                           self.inner_edge.timedelta)
-                        continue
+                        if(len(vehicle.change_lane) == 0):
+                            vehicle.change_lane = [None] * int(round(1. /
+                                                                     timedelta, 0))
+                            vehicle.change_lane.insert(0, 'inward')
 
                     # adjust the speed in a way that:
                     # next gap = current min_gap
@@ -232,14 +227,11 @@ class Edge:
 
                 # make an appropriate deceleration or change lanes
                 if (acc_adj > 2.0 or gap < 2 * needed_gap):
-
                     # check lanes if possible
-                    if(self.check_outward(vehicle)):
-                        self.inner_edge.add_vehicle(vehicle, True)
-                        vehicle.accelerate(self.inner_edge.max_speed,
-                                           vehicle.max_acc,
-                                           self.inner_edge.timedelta)
-                        continue
+                    if(self.check_inward(vehicle) and len(vehicle.change_lane) == 0):
+                        vehicle.change_lane = [None] * int(round(1. /
+                                                                 timedelta, 0)) 
+                        vehicle.change_lane.insert(0, 'inward')
 
                     # decelerate in current lane
                     vehicle.accelerate(self.max_speed, -acc_adj, timedelta)
@@ -259,7 +251,7 @@ class Edge:
     def check_outward(self, vehicle):
         try:
             if(self.outer_edge.check_location(vehicle.location - 15.,
-                                              vehicle.location + 30)):
+                                              vehicle.location + 40)):
                 return True
         except AttributeError:
             return False
@@ -267,7 +259,7 @@ class Edge:
 
     def check_inward(self, vehicle):
         try:
-            if(self.inner_edge.check_location(vehicle.location - 30.,
+            if(self.inner_edge.check_location(vehicle.location - 40.,
                                               vehicle.location + 10)):
                 return True
         except AttributeError:

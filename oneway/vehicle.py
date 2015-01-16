@@ -8,13 +8,14 @@ class Vehicle:
     def __init__(self, speed, location, v_type, tick):
         self.t_react = reactiontime(tick)
         self.auto_max = automax()
-        buffer_size = int(self.t_react / tick) + 1
+        buffer_size = int(round(self.t_react / tick, 0)) + 1
         self.acc = [0] * buffer_size
         self.speed = speed
         self.location = location
         self.max_acc, self.max_brake, self.length, self.mass = \
             self.v_properties[v_type]
         self.loc_speed_old = (location - speed * tick, speed)
+        self.change_lane = []
 
 
     def set_next_acc(self, new_acc):

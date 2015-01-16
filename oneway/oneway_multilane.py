@@ -23,12 +23,13 @@ def main():
     myEdgeNeighborNeighbor.add_neighbor(myEdgeNeighbor, False)
 
     # myEdge.add_vehicle(Vehicle(0., 400., 'broken', tick))
-    for i in range(20, -1, -1):
-        new_vehicle = Vehicle(random.randint(0, 10), i * 20., 'car', tick)
-        myEdge.add_vehicle(new_vehicle)
+    # for i in range(20, -1, -1):
+    #     new_vehicle = Vehicle(random.randint(0, 10), i * 20., 'car', tick)
+    #     myEdge.add_vehicle(new_vehicle)
 
     env = simpy.Environment()
-    env.process(simulate(env, [myEdge, myEdgeNeighbor, myEdgeNeighborNeighbor], 0.1, myCanvas))
+    env.process(simulate(env, [myEdge, myEdgeNeighbor, myEdgeNeighborNeighbor],
+                         0.1, myCanvas))
     env.run(until=500)
     plt.show()
 
@@ -44,15 +45,25 @@ def simulate(env, edges, tick, myCanvas):
         myCanvas.clear_screen((0, 0, 0))
         for edge in edges:
             myCanvas.draw_edge(edge)
+            for vehicle in edge.to_change:
+                edge.to_change.remove(vehicle)
+                if(vehicle in edge.vehicles):
+                    edge.vehicles.remove(vehicle)
+                    direction = vehicle.change_lane.pop(0)
+                    if(direction == 'inward'):
+                        edge.inner_edge.add_vehicle(vehicle)
+                    elif(direction == 'outward'):
+                        edge.outer_edge.add_vehicle(vehicle)
+                    else:
+                        print "None made it here"
             edge.move_vehicles()
             for vehicle in edge.vehicles:
                 myCanvas.draw_vehicle(vehicle, edge)
 
         myCanvas.update_screen()
-        p = 0.05
-        if random.random() < p:
-            edges[0].add_vehicle(Vehicle(20, 0., 'car', 0.1))
 
+        if(round(env.now, 1) % 1.0 == 0):
+            edges[0].add_vehicle(Vehicle(10, 0., 'car', 0.1))
         if(round(env.now, 1) % 10.0 == 0):
             print "time:", round(env.now, 1)
         yield env.timeout(tick)
