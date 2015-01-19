@@ -64,8 +64,6 @@ class Edge:
         return True
 
     def move_vehicles(self):
-        timedelta = self.timedelta
-
         # remove vehicles
         for vehicle in self.to_remove:
             if vehicle in self.vehicles:
@@ -80,164 +78,172 @@ class Edge:
 
         # move each vehicle and make decisions
         for i, vehicle in enumerate(self.vehicles):
+            self.move_vehicle(vehicle, i)
+            
+    def move_vehicle(self, vehicle, i):
+        timedelta = self.timedelta
+        '''
+        Check if vehicle wants to change lane next tick.
+        '''
+        if(len(vehicle.change_lane) > 0):
+            direction = vehicle.change_lane[0]
+            if(direction is not None):
+                self.to_change.append(vehicle)
+            else:
+                vehicle.change_lane.pop(0)
+
+        '''
+        Move vehicle
+        '''
+        # start situation
+        old_loc, old_speed = vehicle.loc_speed_old
+
+        # new situation
+        current_speed = vehicle.speed
+        vehicle.location = vehicle.location + timedelta * 0.5 * \
+            (old_speed + current_speed)
+
+        # end of the lane reached
+        if vehicle.location > self.edgesize:
+            self.to_remove.append(vehicle)
+
+        # vehicle was in an accident
+        if vehicle in self.collisions:
+            if abs(current_speed) < 0.01:
+                vehicle.count_to_remove += 1
+                if vehicle.count_to_remove >= int(self.max_count_accident /
+                                                  timedelta):
+                    self.to_remove.append(vehicle)
+                    print "auto wordt weggesleept"
+                    return
+
+            if self.collision_check(i):
+                return
+
+            vehicle.accelerate(self.max_speed, -vehicle.max_brake,
+                               timedelta)
+            return
+
+        # Make a decision for each vehicle (that is not in front or in an
+        # accident).
+        if(i is not 0):
             '''
-            Check if vehicle wants to change lane next tick.
+            Find the gap and other constants
             '''
-            if(len(vehicle.change_lane) > 0):
-                direction = vehicle.change_lane[0]
-                if(direction is not None):
-                    self.to_change.append(vehicle)
-                else:
-                    vehicle.change_lane.pop(0)
+            # observe vehicle in front
+            vehicle_infront = self.vehicles[i - 1]
+            vel0 = vehicle_infront.speed
+            relative_speed = current_speed - vel0
+
+            # find parameters for this vehicle
+            min_dist = vehicle_infront.length + self.marge
+            params = min_dist, vehicle.max_brake, vehicle.t_react
+
+            # find the gap
+            gap = vehicle_infront.location - vehicle.location
+            min_gap = find_min_gap(current_speed, params)
+            needed_gap = find_min_gap(vel0, params)
 
             '''
-            Move vehicle
+            Check for collision
             '''
-            # start situation
-            old_loc, old_speed = vehicle.loc_speed_old
+            if self.collision_check(i):
+                return
 
-            # new situation
-            current_speed = vehicle.speed
-            vehicle.location = vehicle.location + timedelta * 0.5 * \
-                (old_speed + current_speed)
+            # no collision: save the new place and speed
+            vehicle.loc_speed_old = (vehicle.location, vehicle.speed)
 
-            # end of the lane reached
-            if vehicle.location > self.edgesize:
-                self.to_remove.append(vehicle)
+            '''
+            Check if it's possible to change lanes outward.
+            '''
+            if(self.check_outward(vehicle)):
+                if(len(vehicle.change_lane) == 0):
+                    vehicle.change_lane = [None] * int(round(1. /
+                                                             timedelta, 0))
+                    vehicle.change_lane.insert(0, 'outward')
 
-            # vehicle was in an accident
-            if vehicle in self.collisions:
-                if abs(current_speed) < 0.01:
-                    vehicle.count_to_remove += 1
-                    if vehicle.count_to_remove >= int(self.max_count_accident /
-                                                      timedelta):
-                        self.to_remove.append(vehicle)
-                        print "auto wordt weggesleept"
-                        continue
-
-                if self.collision_check(i):
-                    continue
-
-                vehicle.accelerate(self.max_speed, -vehicle.max_brake,
-                                   timedelta)
-                continue
-
-            # Make a decision for each vehicle (that is not in front or in an
-            # accident).
-            if(i is not 0):
-                '''
-                Find the gap and other constants
-                '''
-                # observe vehicle in front
-                vehicle_infront = self.vehicles[i - 1]
-                vel0 = vehicle_infront.speed
-                relative_speed = current_speed - vel0
-
-                # find parameters for this vehicle
-                min_dist = vehicle_infront.length + self.marge
-                params = min_dist, vehicle.max_brake, vehicle.t_react
-
-                # find the gap
-                gap = vehicle_infront.location - vehicle.location
-                min_gap = find_min_gap(current_speed, params)
-                needed_gap = find_min_gap(vel0, params)
-
-                '''
-                Check for collision
-                '''
-                if self.collision_check(i):
-                    continue
-
-                # no collision: save the new place and speed
-                vehicle.loc_speed_old = (vehicle.location, vehicle.speed)
-
-                '''
-                Check if it's possible to change lanes outward.
-                '''
-                if(self.check_outward(vehicle)):
-                    if(len(vehicle.change_lane) == 0):
+            '''
+            Driving too close to the vehicle in front
+            '''
+            if gap < min_gap:
+                if(self.check_inward(vehicle) and
+                   len(vehicle.change_lane) == 0):
                         vehicle.change_lane = [None] * int(round(1. /
                                                                  timedelta, 0))
-                        vehicle.change_lane.insert(0, 'outward')
-
-                '''
-                Driving too close to the vehicle in front
-                '''
-                if gap < min_gap:
-                    if(self.check_inward(vehicle)):
-                        if(len(vehicle.change_lane) == 0):
-                            vehicle.change_lane = [None] * int(round(1. /
-                                                                     timedelta, 0))
-                            vehicle.change_lane.insert(0, 'inward')
-
-                    # adjust the speed in a way that:
-                    # next gap = current min_gap
-                    new_speed = 2. / timedelta * (gap - min_gap) + 2. * vel0 -\
-                        current_speed
-
-                    acc_adj = min([new_speed - current_speed, 0])
-
-                    vehicle.accelerate(self.max_speed, acc_adj, timedelta)
-                    continue
-
-                '''
-                Driving the same speed as the vehicle in front
-                '''
-                if abs(relative_speed) < 0.5:
-                    # there is enough space to accelerate
-                    if gap > min_gap + vehicle.max_acc * timedelta * timedelta:
-                        vehicle.accelerate(self.max_speed, vehicle.max_acc,
-                                           timedelta)
-
-                    # take the speed of the vehicle in front
-                    else:
-                        acc_adj = vel0 - current_speed
-                        vehicle.accelerate(self.max_speed, acc_adj, timedelta)
-                    continue
-
-                '''
-                Driving slower than the vehicle in front
-                '''
-                if relative_speed < 0:
-                    # make an appropriate acceleration
-                    if gap < needed_gap:
-                        delta_t = 2. * (needed_gap - gap) / (-relative_speed)
-                        acc_adj = (-relative_speed) / delta_t
-
-                    # maximal acceleration
-                    else:
-                        acc_adj = vehicle.max_acc
-
-                    vehicle.accelerate(self.max_speed, acc_adj, timedelta)
-                    continue
-
-                '''
-                Driving faster than the vehicle in front
-                '''
-                # be aware that the vehicle in an accident will stop
-                if vehicle_infront in self.collisions:
-                    relative_speed = current_speed
-
-                delta_t = 2. * (gap - needed_gap) / relative_speed
-                acc_adj = relative_speed / delta_t
-
-                # make an appropriate deceleration or change lanes
-                if (acc_adj > 2.0 or gap < 2 * needed_gap):
-                    # check lanes if possible
-                    if(self.check_inward(vehicle) and len(vehicle.change_lane) == 0):
-                        vehicle.change_lane = [None] * int(round(1. /
-                                                                 timedelta, 0)) 
                         vehicle.change_lane.insert(0, 'inward')
 
-                    # decelerate in current lane
-                    vehicle.accelerate(self.max_speed, -acc_adj, timedelta)
+                # adjust the speed in a way that:
+                # next gap = current min_gap
+                new_speed = 2. / timedelta * (gap - min_gap) + 2. * vel0 -\
+                    current_speed
 
-                # accelerate if the car in front is far away
-                else:
+                acc_adj = min([new_speed - current_speed, 0])
+
+                vehicle.accelerate(self.max_speed, acc_adj, timedelta)
+                return
+
+            '''
+            Driving the same speed as the vehicle in front
+            '''
+            if abs(relative_speed) < 0.5:
+                # there is enough space to accelerate
+                if gap > min_gap + vehicle.max_acc * timedelta * timedelta:
                     vehicle.accelerate(self.max_speed, vehicle.max_acc,
                                        timedelta)
 
+                # take the speed of the vehicle in front
+                else:
+                    acc_adj = vel0 - current_speed
+                    vehicle.accelerate(self.max_speed, acc_adj, timedelta)
+                return
+
+            '''
+            Driving slower than the vehicle in front
+            '''
+            if relative_speed < 0:
+                # make an appropriate acceleration
+                if gap < needed_gap:
+                    delta_t = 2. * (needed_gap - gap) / (-relative_speed)
+                    acc_adj = (-relative_speed) / delta_t
+
+                # maximal acceleration
+                else:
+                    acc_adj = vehicle.max_acc
+
+                vehicle.accelerate(self.max_speed, acc_adj, timedelta)
+                return
+
+            '''
+            Driving faster than the vehicle in front
+            '''
+            # be aware that the vehicle in an accident will stop
+            if vehicle_infront in self.collisions:
+                relative_speed = current_speed
+
+            delta_t = 2. * (gap - needed_gap) / relative_speed
+            acc_adj = relative_speed / delta_t
+
+            # If you need to brake more than -4.0 ms^2 try and change lanes inward
+            if (acc_adj > 4.0):
+                # check lanes if possible
+                if(self.check_inward(vehicle) and 
+                        len(vehicle.change_lane) == 0):
+                    vehicle.change_lane = [None] * int(round(1. /
+                                                             timedelta, 0))
+                    vehicle.change_lane.insert(0, 'inward')
+                    vehicle.accelerate(self.max_speed, 0, timedelta)
+                    return
+
+            # make an appropriate deceleration
+            if (acc_adj > 2.0 or gap < 2 * needed_gap):
+                # decelerate in current lane
+                vehicle.accelerate(self.max_speed, -acc_adj, timedelta)
+
+            # accelerate if the car in front is far away
             else:
+                vehicle.accelerate(self.max_speed, vehicle.max_acc,
+                                   timedelta)
+        else:
                 # accelerate
                 vehicle.accelerate(self.max_speed, vehicle.max_acc, timedelta)
 
@@ -246,8 +252,8 @@ class Edge:
     '''
     def check_outward(self, vehicle):
         try:
-            if(self.outer_edge.check_location(vehicle.location - 15.,
-                                              vehicle.location + 40)):
+            if(self.outer_edge.check_location(vehicle.location - 20.,
+                                              vehicle.location + 50)):
                 return True
         except AttributeError:
             return False
@@ -255,8 +261,8 @@ class Edge:
 
     def check_inward(self, vehicle):
         try:
-            if(self.inner_edge.check_location(vehicle.location - 40.,
-                                              vehicle.location + 10)):
+            if(self.inner_edge.check_location(vehicle.location - 50.,
+                                              vehicle.location + 20)):
                 return True
         except AttributeError:
             return False
@@ -300,7 +306,7 @@ class Edge:
         vehicle = self.vehicles[i]
         vehicle_infront = self.vehicles[i - 1]
         gap = vehicle_infront.location - vehicle.location
-        
+
         collision = False
 
         if gap < vehicle_infront.length:
@@ -343,7 +349,6 @@ class Edge:
                 veh.count_to_remove = 0
                 veh.loc_speed_old = veh.location, avg_speed
                 veh.speed = avg_speed
-
 
         return collision
 

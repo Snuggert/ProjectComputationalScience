@@ -10,12 +10,19 @@ from canvas import Canvas
 from pygame.locals import QUIT, KEYDOWN, K_ESCAPE
 
 
+def max_speed(loc):
+    if loc > 2000:
+        return 20
+    else:
+        return 30
+
+
 def main():
     tick = 0.1
     myCanvas = Canvas()
-    myEdge = Edge([[0, 100], [500, 100]], 30., tick)
-    myEdgeNeighbor = Edge([[0, 93], [500, 93]], 30, tick)
-    myEdgeNeighborNeighbor = Edge([[0, 85], [500, 85]], 30, tick)
+    myEdge = Edge([[0, 100], [500, 100]], max_speed, tick)
+    myEdgeNeighbor = Edge([[0, 93], [500, 93]], max_speed, tick)
+    myEdgeNeighborNeighbor = Edge([[0, 85], [500, 85]], max_speed, tick)
 
     myEdge.add_neighbor(myEdgeNeighbor, True)
     myEdgeNeighbor.add_neighbor(myEdge, False)
@@ -47,13 +54,15 @@ def simulate(env, edges, tick, myCanvas):
             myCanvas.draw_edge(edge)
             for vehicle in edge.to_change:
                 edge.to_change.remove(vehicle)
+
                 if(vehicle in edge.vehicles):
                     edge.vehicles.remove(vehicle)
                     direction = vehicle.change_lane.pop(0)
                     if(direction == 'inward'):
                         edge.inner_edge.add_vehicle(vehicle)
                     elif(direction == 'outward'):
-                        edge.outer_edge.add_vehicle(vehicle)
+                        i = edge.outer_edge.add_vehicle(vehicle)
+                        edge.outer_edge.move_vehicle(vehicle, i)
                     else:
                         print "None made it here"
             edge.move_vehicles()
@@ -63,7 +72,7 @@ def simulate(env, edges, tick, myCanvas):
         myCanvas.update_screen()
 
         if(round(env.now, 1) % 1.0 == 0):
-            edges[0].add_vehicle(Vehicle(10, 0., 'car', 0.1))
+            edges[0].add_vehicle(Vehicle(30, 0., 'car', 0.1))
         if(round(env.now, 1) % 10.0 == 0):
             print "time:", round(env.now, 1)
         yield env.timeout(tick)
