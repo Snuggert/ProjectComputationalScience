@@ -123,7 +123,7 @@ class Edge:
                 continue
 
             # Make a decision for each vehicle (that is not in front or in an
-            # accident.
+            # accident).
             if(i is not 0):
                 '''
                 Find the gap and other constants
@@ -175,11 +175,7 @@ class Edge:
                     new_speed = 2. / timedelta * (gap - min_gap) + 2. * vel0 -\
                         current_speed
 
-                    acc_adj = new_speed - current_speed
-
-                    # don't accelerate
-                    if acc_adj > 0:
-                        acc_adj = 0
+                    acc_adj = min([new_speed - current_speed, 0])
 
                     vehicle.accelerate(self.max_speed, acc_adj, timedelta)
                     continue
@@ -267,18 +263,31 @@ class Edge:
         return False
 
     def plot_vehicles(self):
-        vehicles_xy = [[], []]
-        for vehicle in self.vehicles:
-            vehicles_xy[0].append(vehicle.location)
-            vehicles_xy[1].append(1)
-        plt.plot(vehicles_xy[0], vehicles_xy[1], 'bs')
+        edge = self
+        lane = 1
 
-        collision_xy = [[], []]
-        for vehicle in self.collisions:
-            collision_xy[0].append(vehicle.location)
-            collision_xy[1].append(1)
-        plt.plot(collision_xy[0], collision_xy[1], 'rs')
-        plt.axis([0, self.edgesize, 0, 2])
+        while True:
+            vehicles_xy = [[], []]
+            for vehicle in edge.vehicles:
+                vehicles_xy[0].append(vehicle.location)
+                vehicles_xy[1].append(lane)
+            plt.plot(vehicles_xy[0], vehicles_xy[1], 'gs')
+
+            collision_xy = [[], []]
+            for vehicle in edge.collisions:
+                collision_xy[0].append(vehicle.location)
+                collision_xy[1].append(lane)
+            plt.plot(collision_xy[0], collision_xy[1], 'rs')
+            eps = 0.4
+            plt.axhspan(lane - eps, lane + eps, facecolor = "black", 
+                alpha = 0.3)
+            lane += 1
+            try:
+                edge = edge.inner_edge
+            except AttributeError:
+                break
+
+        plt.axis([0, self.edgesize, -5, lane + 5])
         plt.draw()
         plt.pause(0.00001)
         plt.clf()
@@ -296,8 +305,10 @@ class Edge:
 
         if gap < vehicle_infront.length:
             collision = True
-            print "FATAL ERROR!!! >:( "
-            print "auto %d botst op voorganger" % i
+            if vehicle not in self.collisions:
+                print "FATAL ERROR!!! >:( "
+                print "auto %d botst op voorganger op locatie %.1f" % (i, 
+                    vehicle.location)
 
             # new location vehicle
             vehicle.location = (vehicle_infront.location

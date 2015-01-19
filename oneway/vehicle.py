@@ -17,29 +17,32 @@ class Vehicle:
         self.loc_speed_old = (location - speed * tick, speed)
         self.change_lane = []
 
-
     def set_next_acc(self, new_acc):
-        if new_acc > self.max_acc:
-            new_acc = self.max_acc
-        elif new_acc < -self.max_brake:
-            new_acc = -self.max_brake
+        new_acc = min([new_acc, self.max_acc])
+        new_acc = max([new_acc, -self.max_brake])
 
         self.acc.remove(self.acc[0])
         self.acc.append(new_acc)
 
-    def accelerate(self, max_speed, acceleration, timedelta):
+    def accelerate(self, edge_max_speed, acceleration, timedelta):
+        max_speed = edge_max_speed(self.location)
+
         # driver faster than allowed
         if self.speed > max_speed + self.auto_max:
             acceleration = -2
+            self.set_next_acc(acceleration)
+            if self.acc[0] < 0:
+                self.speed += self.acc[0] * timedelta
+                
+        # accelerate as much as possible
+        else:
+            self.set_next_acc(acceleration)
+            self.speed += self.acc[0] * timedelta
 
-        self.set_next_acc(acceleration)
-        self.speed += self.acc[0] * timedelta
+            # maximum speed reached
+            self.speed = min([self.speed, max_speed + self.auto_max])
 
-        # maximum speed reached
-        if self.speed > max_speed + self.auto_max:
-            self.speed = max_speed + self.auto_max
-        elif self.speed < 0:
-            self.speed = 0
+        self.speed = max([self.speed, 0])
 
         self.loc_speed_old = self.loc_speed_old[0], self.speed
 
