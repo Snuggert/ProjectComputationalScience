@@ -22,7 +22,7 @@ class Canvas:
         self.car_image = pygame.image.load('car.png')
 
     def draw_vehicle(self, vehicle, edge):
-        x_scale = self.screen.get_width() / edge.locations[1][0]
+        x_scale = int(self.screen.get_width() / self.max_edge)
         road_pos_ratio = vehicle.location / edge.edgesize
 
         edge_x = int((edge.locations[1][0] - edge.locations[0][0])
@@ -42,18 +42,13 @@ class Canvas:
                           scaled_y_loc - vehicle_screen_ysize))
 
     def scale_to_screen(self, edge, x, y):
-        scaled_x = int(x * (self.screen.get_width() /
-                            float(edge.locations[1][0] -
-                                  edge.locations[0][0])))
+        scaled_x = int((x) * (self.screen.get_width() / self.max_edge))
         scaled_y = int(self.screen.get_height() / 2.) + y
         return scaled_x, scaled_y
 
     def draw_edge(self, edge):
-        scaled_road_x = \
-            int(edge.locations[1][0] * (self.screen.get_width() /
-                                        float(edge.locations[1][0] -
-                                              edge.locations[0][0])))
-        for i in range(0, scaled_road_x, self.scaled_road_image.get_width()):
+        scaled_road_x = int((self.screen.get_width() / self.max_edge) * edge.locations[1][0])
+        for i in range(edge.locations[0][0], edge.locations[0][0] + scaled_road_x, self.scaled_road_image.get_width()):
             self.screen.blit(self.scaled_road_image,
                              (i, int(self.screen.get_height() / 2. +
                                      edge.locations[0][1] -

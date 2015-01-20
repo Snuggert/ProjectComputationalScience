@@ -29,6 +29,8 @@ def main():
     myEdgeNeighbor.add_neighbor(myEdgeNeighborNeighbor, True)
     myEdgeNeighborNeighbor.add_neighbor(myEdgeNeighbor, False)
 
+    myCanvas.max_edge = myEdge.edgesize
+
     # myEdge.add_vehicle(Vehicle(0., 400., 'broken', tick))
     # for i in range(20, -1, -1):
     #     new_vehicle = Vehicle(random.randint(0, 10), i * 20., 'car', tick)
@@ -52,19 +54,7 @@ def simulate(env, edges, tick, myCanvas):
         myCanvas.clear_screen((0, 0, 0))
         for edge in edges:
             myCanvas.draw_edge(edge)
-            for vehicle in edge.to_change:
-                edge.to_change.remove(vehicle)
-
-                if(vehicle in edge.vehicles):
-                    edge.vehicles.remove(vehicle)
-                    direction = vehicle.change_lane.pop(0)
-                    if(direction == 'inward'):
-                        edge.inner_edge.add_vehicle(vehicle)
-                    elif(direction == 'outward'):
-                        i = edge.outer_edge.add_vehicle(vehicle)
-                        edge.outer_edge.move_vehicle(vehicle, i)
-                    else:
-                        print "None made it here"
+            edge.change_lanes()
             edge.move_vehicles()
             for vehicle in edge.vehicles:
                 myCanvas.draw_vehicle(vehicle, edge)
