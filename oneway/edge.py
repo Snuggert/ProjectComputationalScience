@@ -347,7 +347,7 @@ class Edge:
             return False
         return False
 
-    def plot_vehicles(self):
+    def plot_vehicles(self, x1, x2):
         edge = self
         lane = 1
 
@@ -372,7 +372,7 @@ class Edge:
             except AttributeError:
                 break
 
-        plt.axis([0, self.edgesize, -5, lane + 5])
+        plt.axis([x1, x2, -5, lane + 5])
         plt.draw()
         plt.pause(0.00001)
         plt.clf()

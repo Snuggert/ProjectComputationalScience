@@ -3,131 +3,204 @@ from vehicle import Vehicle
 import random
 import matplotlib.pyplot as plt
 
-def make_new_vehicle():
+def make_new_vehicle(this_edge):
 	veh_type = "car"
 	if random.random() < p_truck:
 		veh_type = "truck"
 	new_veh = Vehicle(init_speed, init_location, veh_type, tick)
-
-	new_veh.nr = nr
-	results[nr] = [-1, -1]
-	new_veh.out_of_edge = False
-
-	if len(edge.vehicles) > 0:
-		new_veh.before = edge.vehicles[-1]
-		new_veh.min_gap = new_veh.before.length + \
-			0.5 * init_speed * init_speed / new_veh.max_brake +\
-			new_veh.t_react * new_veh.speed
-	else:
-		new_veh.before = new_veh
-		new_veh.min_gap = 0
+	
+	new_veh.type = veh_type
+	new_veh.id_nr = nr
+	new_veh.t_begin = -1
 
 	return new_veh
 
 '''
 Define constants
 '''
-locations = [[0, 0],[2400, 3200]]
-def max_speed(loc):
-	if loc > 2000:
-		return 20
-	else:
-		return 30
-		
-tick = 0.1
-edge = Edge(locations, max_speed, tick)
+# define sizes
+locations = [[0, 0],[3000, 4000]]
+plot_range = 0, 5000
+start_wall, stop_wall = 2000, 3000
 
-init_speed = 30
-init_location = 0
+# define function max_speed
+def max_speed(loc):
+	return 25
+		
+# probabilities
 p_place = 0.1
+modulo = 15
 p_truck = 0.1
 
-results = {} # nr, time_in, time_out
+# choices
+random_placing = False
+wall = False
+use_plot = False
 
-N = 6000
+# initiation constants
+init_speed = max_speed(0)
+init_location = -2000
+
+# number of iterations and tick
+N = 2000
+max_it =  10 * N
+tick = 0.1
+
+# _________________________________________________________
+
+
+# initiate
 nr = 0
 num_clashed = 0
+t = 0
+results = {} # id_nr, time_in, time_out
+collision_nr = []
+finished = False
 
-new_veh = make_new_vehicle()
+# make edges
+num_lanes = 3
+edges = []
+for i in range(num_lanes):
+	edges.append(Edge(locations, max_speed, tick))
+	if i > 0:
+		edges[i].add_neighbor(edges[i - 1], False)
+		edges[i - 1].add_neighbor(edges[i], True)
+
+edgesize = edges[0].edgesize
+
+# first car
+lane = random.randint(0, num_lanes - 1)
+new_veh = make_new_vehicle(edges[lane])
 very_first_veh = new_veh
+
+if wall:
+	# make wall
+	for i in range(start_wall, stop_wall, 20):
+		broken_veh = Vehicle(0, i, "broken" , tick)
+		broken_veh.id_nr = -1
+		edges[-1].add_vehicle(broken_veh)
+		broken_veh.times = [0., -1]
+	edges[-1].add_wall(start_wall, stop_wall)
 
 '''
 Run simulation
 '''
-for t in range(N):
+while True:	
 	time = t * tick
+	place_new = False
 
-	if len(edge.vehicles) > 0:
-		in_front = edge.vehicles[-1]
-		gap = in_front.location - init_location
-		if gap > new_veh.min_gap:
-			valid = True
+	# placing a new vehicle?
+	if random_placing:
+		if random.random() < p_place:
+			place_new = True
 	else:
-		valid = True
+		if t % modulo == 0:
+			place_new = True
 
-	if valid and random.random() < p_place:
-		edge.add_vehicle(new_veh)
-		results[nr][0] = time
+	# stop with new vehicles if maximum iterations is reached
+	if t >= N:
+		place_new = False
+
+	# place a vehicle and initiate a new one
+	if place_new:
+		edges[lane].add_vehicle(new_veh)
 		nr += 1
 		
-		valid = False
-		new_veh = make_new_vehicle()
+		lane = random.randint(0, num_lanes - 1)
+		new_veh = make_new_vehicle(edges[lane])
 
-	edge.move_vehicles()
-	#edge.plot_vehicles()
+	# move all vehicles
+	for edge in edges:
+		edge.change_lanes()
+		edge.move_vehicles()
 
-	if len(edge.vehicles) > 0:
-		first_veh = edge.vehicles[0]
-		if first_veh.before == first_veh:
-			continue
+	# iterate over every vehicle on the road
+	num_vehicles = 0
+	for edge in edges:
+		for vehicle in edge.vehicles:
 
-		before_veh = first_veh.before
-		# test whether the car in front of it just went out of the edge
-		while not before_veh.out_of_edge:
-			before_veh.out_of_edge = True
-			this_nr = before_veh.nr
-			results[this_nr][1] = time 
-			if before_veh.location < edge.edgesize:
-				results[nr][1] = -1
-				print "veh nr %d is kaput" % this_nr
-				num_clashed += 1
+			# count collisions
+			if vehicle in edge.collisions and vehicle.location > 0:
+				if vehicle.id_nr not in collision_nr:
+					collision_nr.append(vehicle.id_nr)
+			else:
+				num_vehicles += 1
 
-			before_veh = before_veh.before
+			# start timer
+			if vehicle.t_begin < 0 and vehicle.location >= 0.:
+				vehicle.t_begin = time
+
+			# end timer
+			if (vehicle.location >= edge.edgesize and 
+				vehicle.id_nr not in collision_nr):
+
+				results[vehicle.id_nr] = time - vehicle.t_begin
+				if not finished:
+					t0 = time
+				finished = True
+
+	# plot if necessary
+	if use_plot and t % 10 == 0:
+		edges[0].plot_vehicles(plot_range[0], plot_range[1])
+
+	# stop if all the cars have finished or crashed
+	if not place_new and num_vehicles == 0:
+		break 
+
+	# increment the time parameter
+	t += 1
+	if t == max_it:
+		for edge in edges:
+			for vehicle in edge.vehicles:
+				print "Snelheid: %.2f, locatie %.2f, type: %s , nr: %d" % \
+				(vehicle.speed, vehicle.location, vehicle.type, 
+						vehicle.id_nr)
+		break
+
 
 '''
 Find results
 '''
-nrs = []
-interval = []
+is_max = ""
+if t == max_it:
+	is_max = "(max)"
+print "\nIteraties: %d %s" % (t, is_max)
 
-for nr in results:
-	times = results[nr]
-	if times[1] > 0:
-		nrs.append(nr)
-		interval.append(times[1] - times[0])
+mean_vel = []
+time_intervals = []
 
-if len(nrs) > 1:
-	xmax = max(nrs)
-	ymax = max(interval) * 1.80
+for id_nr in results:
+	interval = results[id_nr]
+	mean_vel.append(edgesize / interval)
+	time_intervals.append(interval)
 
-	mean = sum(interval) / len(interval)
-	mean2 = sum(interval[5:]) / len(interval[5:])
-	print "\ngemiddelde tijd: %.1f seconde" % mean 
-	print "Totale afstand: %.1f meter" % edge.edgesize 
-	print "gemiddelde snelheid: %.4f m/s" % (edge.edgesize / mean)
-	print "aangepast gemiddelde snelheid: %.4f m/s" % \
-		(edge.edgesize / mean2) 
+if len(mean_vel) > 2:
 
-	print "Totaal aantal auto's: %d" % nr
-	kapot = num_clashed + len(edge.collisions)
-	print "Aantal auto's kapot: %d (%.2f procent)" % \
-		(kapot, (kapot * 100.0) / nr)
+	mean = sum(mean_vel) / len(mean_vel)
+	mean_time = sum(time_intervals) / len(time_intervals)
+	print "\nGemiddelde tijd: %.1f seconde" % mean_time 
+	print "Totale afstand: %.1f meter" % edgesize 
+	print "gemiddelde snelheid: %.4f m/s" % mean
 
-	plt.plot(nrs, interval, "r-*")
-	plt.axis([0, xmax, 0, ymax])
+	n_fin, n_crash = len(results), len(collision_nr)
+	print "Aantal gefinished: %d, aantal stuk: %d" % (n_fin, n_crash)
+	print "Kans op botsing: %.4f" % (n_crash / float(n_fin + n_crash))
+
+	labda = n_fin / (time - t0)
+	tot_cap = labda * mean_time
+	tot_cap_scaled = tot_cap / edgesize * 1000.
+	print "Gemiddelde capaciteit = %.2f auto's per km" % tot_cap_scaled
+
+	title = "Average speed of vehicles on a %d-lane road" % num_lanes
+	plt.hist(mean_vel, color = "red", alpha = 0.7)
+	plt.xlabel("Average speed in m/s")
+	plt.ylabel("Frequency")
+	plt.title(title)
 	plt.show()
 else:
-	print "Te weinig resultaten"
+	print "Te weinig resultaten: eerste op %.2f" % very_first_veh.location
+	print "Aantal begonnen: %d" % nr
+	print "Aantal gecrashed: %d" % len(collision_nr)
 
 
 
