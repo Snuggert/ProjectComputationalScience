@@ -29,7 +29,7 @@ class Edge:
             return 0
         index = 0
         while True:
-            if(index == len(self.vehicles) or
+            if(index >= len(self.vehicles) or
                vehicle.location > self.vehicles[index].location):
                 self.vehicles.insert(index, vehicle)
                 return index
@@ -179,15 +179,15 @@ class Edge:
             '''
             Check if it's possible to change lanes outward.
             '''
-            if(self.check_lane(vehicle, 20, 50, 'outer')):
+            if(self.check_lane(vehicle, 30, 40, 'outer')):
                 if(len(vehicle.change_lane) == 0):
-                    vehicle.change_lane = [None] * int(round(1. /
+                    vehicle.change_lane = [None] * int(round(vehicle.t_react /
                                                              timedelta, 0))
                     vehicle.change_lane.insert(0, 'outward')
 
             if (self.really_need_to_outward(vehicle)):
                 if(len(vehicle.change_lane) == 0):
-                    vehicle.change_lane = [None] * int(round(1. /
+                    vehicle.change_lane = [None] * int(round(vehicle.t_react /
                                                              timedelta, 0))
                     vehicle.change_lane.insert(0, 'outward')
                     vehicle.wants_to_go_right = False
@@ -202,7 +202,7 @@ class Edge:
             if gap < min_gap:
                 if(self.check_lane(vehicle, 50, 20, 'inner') and
                    len(vehicle.change_lane) == 0):
-                        vehicle.change_lane = [None] * int(round(1. /
+                        vehicle.change_lane = [None] * int(round(vehicle.t_react /
                                                                  timedelta, 0))
                         vehicle.change_lane.insert(0, 'inward')
 
@@ -289,11 +289,11 @@ class Edge:
 
             # If you need to brake more than -4.0 ms^2 try and change
             # lanes inward
-            if (acc_adj > 4.0):
+            if (acc_adj > 5.0):
                 # check lanes if possible
                 if(self.check_lane(vehicle, 50, 20, 'inner') and
                         len(vehicle.change_lane) == 0):
-                    vehicle.change_lane = [None] * int(round(1. /
+                    vehicle.change_lane = [None] * int(round(vehicle.t_react /
                                                              timedelta, 0))
                     vehicle.change_lane.insert(0, 'inward')
                     vehicle.accelerate(self.max_speed, 0, timedelta)
