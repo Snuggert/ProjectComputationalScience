@@ -63,8 +63,8 @@ class Edge:
             if max_loc > vehicle.location > min_loc:
                 return False
             try:
-                diff = self.wall - min_loc
-                if diff < self.wall_marge:
+                x = (self.start_wall - self.wall_marge, self.stop_wall)
+                if x[0] < max_loc < x[1]:
                     return False
             except:
                 AttributeError
@@ -179,7 +179,6 @@ class Edge:
                     vehicle.wants_to_go_right = False
 
             if vehicle.wants_to_go_right:
-                print "vehicle %d wants to go right" % i
                 vehicle.accelerate(self.max_speed, -2, timedelta)
                 return
 
@@ -210,6 +209,7 @@ class Edge:
                 this_edge = self.inner_edge
                 num = len(this_edge.vehicles)
                 if num > 0:
+                    # find the car at the (front) left that is closest
                     k = num - 1
                     left_vehicle = this_edge[k]
                     while left_vehicle.location < vehicle.location:
@@ -218,14 +218,18 @@ class Edge:
                             break
                         left_vehicle = this_edge[k]
 
+                    # vehicle front left found
                     if k >= 0:
                         if left_vehicle.wants_to_go_right:
                             delta = left_vehicle.location - vehicle.location
+
+                            # decelerate if the vehicle is close enough
                             if delta > 0 and delta < 30 and delta < gap:
                                 vehicle.accelerate(self.max_speed, -2,
                                                    timedelta)
                                 return
             except:
+                # there is no inner edge (vehicle is at far left lane)
                 AttributeError
 
             '''
