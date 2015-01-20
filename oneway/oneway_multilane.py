@@ -1,7 +1,6 @@
 import pygame
 import sys
 import simpy
-import random
 
 import matplotlib.pyplot as plt
 from edge import Edge
@@ -11,10 +10,7 @@ from pygame.locals import QUIT, KEYDOWN, K_ESCAPE
 
 
 def max_speed(loc):
-    if loc > 2000:
-        return 20
-    else:
-        return 30
+    return 30
 
 
 def main():
@@ -22,16 +18,15 @@ def main():
     myCanvas = Canvas()
     myEdge = Edge([[0, 100], [500, 100]], max_speed, tick)
     myEdgeNeighbor = Edge([[0, 93], [500, 93]], max_speed, tick)
-    myEdgeNeighborNeighbor = Edge([[0, 85], [500, 85]], max_speed, tick)
+    myEdgeNeighborNeighbor = Edge([[0, 85], [400, 85]], max_speed, tick)
 
     myEdge.add_neighbor(myEdgeNeighbor, True)
     myEdgeNeighbor.add_neighbor(myEdge, False)
     myEdgeNeighbor.add_neighbor(myEdgeNeighborNeighbor, True)
     myEdgeNeighborNeighbor.add_neighbor(myEdgeNeighbor, False)
-
     myCanvas.max_edge = myEdge.edgesize
 
-    # myEdge.add_vehicle(Vehicle(0., 400., 'broken', tick))
+    # myEdgeNeighborNeighbor.add_vehicle(Vehicle(0., 249., 'broken', tick))
     # for i in range(20, -1, -1):
     #     new_vehicle = Vehicle(random.randint(0, 10), i * 20., 'car', tick)
     #     myEdge.add_vehicle(new_vehicle)
@@ -61,12 +56,12 @@ def simulate(env, edges, tick, myCanvas):
 
         myCanvas.update_screen()
 
-        if(round(env.now, 1) % 1.0 == 0):
-            edges[0].add_vehicle(Vehicle(30, 0., 'car', 0.1))
+        if(round(env.now, 1) % 0.5 == 0):
+            edges[0].add_vehicle(Vehicle(40, 0., 'car', 0.1))
         if(round(env.now, 1) % 10.0 == 0):
             print "time:", round(env.now, 1)
         yield env.timeout(tick)
-        plt.pause(0.01)
+        plt.pause(0.1)
 
 if __name__ == '__main__':
     main()
