@@ -2,7 +2,7 @@ import random
 
 
 class Vehicle:
-    v_properties = {"car": (2., 10., 3, 1), "truck": (3., 4., 2, 4),
+    v_properties = {"car": (5., 10., 3, 1), "truck": (3., 4., 2, 4),
                     "broken": (0., 10., 3, 1)}
 
     def __init__(self, speed, location, v_type, tick):

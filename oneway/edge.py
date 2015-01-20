@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 class Edge:
     marge = 1.0
     max_count_accident = 10
+    wall_marge = 600
 
     def __init__(self, locations, max_speed, tick):
         self.id = id
@@ -59,8 +60,15 @@ class Edge:
 
     def check_location(self, min_loc, max_loc):
         for vehicle in self.vehicles:
-            if(max_loc > vehicle.location > min_loc):
+            if max_loc > vehicle.location > min_loc:
                 return False
+            try:
+                diff = self.wall - min_loc
+                if diff < self.wall_marge:
+                    return False
+            except:
+                AttributeError
+
         return True
 
     def move_vehicles(self):
@@ -78,7 +86,8 @@ class Edge:
 
         # move each vehicle and make decisions
         for i, vehicle in enumerate(self.vehicles):
-            self.move_vehicle(vehicle, i)
+            if vehicle.max_acc > 0:
+                self.move_vehicle(vehicle, i)
             
     def move_vehicle(self, vehicle, i):
         timedelta = self.timedelta
@@ -162,6 +171,18 @@ class Edge:
                                                              timedelta, 0))
                     vehicle.change_lane.insert(0, 'outward')
 
+            if (self.really_need_to_outward(vehicle)):
+                if(len(vehicle.change_lane) == 0):
+                    vehicle.change_lane = [None] * int(round(1. /
+                                                             timedelta, 0))
+                    vehicle.change_lane.insert(0, 'outward')
+                    vehicle.wants_to_go_right = False
+
+            if vehicle.wants_to_go_right:
+                print "vehicle %d wants to go right" % i
+                vehicle.accelerate(self.max_speed, -2, timedelta)
+                return
+
             '''
             Driving too close to the vehicle in front
             '''
@@ -181,6 +202,31 @@ class Edge:
 
                 vehicle.accelerate(self.max_speed, acc_adj, timedelta)
                 return
+
+            '''
+            The vehicle to the left wants to go right
+            '''
+            try:
+                this_edge = self.inner_edge
+                num = len(this_edge.vehicles)
+                if num > 0:
+                    k = num - 1
+                    left_vehicle = this_edge[k]
+                    while left_vehicle.location < vehicle.location:
+                        k -= 1
+                        if k < 0:
+                            break
+                        left_vehicle = this_edge[k]
+
+                    if k >= 0:
+                        if left_vehicle.wants_to_go_right:
+                            delta = left_vehicle.location - vehicle.location
+                            if delta > 0 and delta < 30 and delta < gap:
+                                vehicle.accelerate(self.max_speed, -2,
+                                                   timedelta)
+                                return
+            except:
+                AttributeError
 
             '''
             Driving the same speed as the vehicle in front
@@ -223,7 +269,8 @@ class Edge:
             delta_t = 2. * (gap - needed_gap) / relative_speed
             acc_adj = relative_speed / delta_t
 
-            # If you need to brake more than -4.0 ms^2 try and change lanes inward
+            # If you need to brake more than -4.0 ms^2 try and change 
+            # lanes inward
             if (acc_adj > 4.0):
                 # check lanes if possible
                 if(self.check_inward(vehicle) and 
@@ -259,10 +306,42 @@ class Edge:
             return False
         return False
 
+    def really_need_to_outward(self, vehicle):
+        vehicle.wants_to_go_right = False
+        place, speed = vehicle.location, vehicle.speed
+
+        # check whether there exists a outer edge
+        try:
+            this_edge = self.outer_edge
+        except AttributeError:
+            return False
+
+        # check whether there is a 'wall'
+        try:   
+            diff = self.wall - place
+        except AttributeError:
+            return False
+
+        # approaching the wall...
+        if diff < 0 or diff > self.wall_marge:
+            return False
+
+        vehicle.wants_to_go_right = True
+
+        x = (place - 15, place + 10)
+
+        for veh in this_edge.vehicles:
+            if x[0] < veh.location < x[1]:
+                return False
+
+        return True
+
+
     def check_inward(self, vehicle):
         try:
             if(self.inner_edge.check_location(vehicle.location - 50.,
                                               vehicle.location + 20)):
+
                 return True
         except AttributeError:
             return False
