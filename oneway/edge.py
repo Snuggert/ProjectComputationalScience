@@ -60,7 +60,9 @@ class Edge:
             pass
 
     def check_location(self, min_loc, max_loc):
-        if(self.edgesize < min_loc or self.edgesize < max_loc):
+        if(max_loc > self.edgesize or min_loc > self.edgesize):
+            return False
+        if(self.within_marge_to_wall(max_loc) or self.within_marge_to_wall(min_loc)):
             return False
         for vehicle in self.vehicles:
             if max_loc > vehicle.location > min_loc:
@@ -151,6 +153,18 @@ class Edge:
                                timedelta)
             return
 
+        """Check if vehicle is within marge to wall"""
+        if(self.within_marge_to_wall(vehicle.location)):
+            vehicle.wants_to_go_right = True
+            if(self.check_lane(vehicle, 20, 30, 'outer')):
+                if(len(vehicle.change_lane) == 0):
+                    vehicle.change_lane = [None] * int(round(vehicle.t_react /
+                                                             timedelta, 0))
+                    vehicle.change_lane.insert(0, 'outward')
+                    vehicle.wants_to_go_right = False
+            else:
+                vehicle.accelerate(self.max_speed, -2.0, timedelta)
+
         # Make a decision for each vehicle (that is not in front or in an
         # accident).
         if(i is not 0):
@@ -188,17 +202,6 @@ class Edge:
                     vehicle.change_lane = [None] * int(round(vehicle.t_react /
                                                              timedelta, 0))
                     vehicle.change_lane.insert(0, 'outward')
-
-            if (self.really_need_to_outward(vehicle)):
-                if(len(vehicle.change_lane) == 0):
-                    vehicle.change_lane = [None] * int(round(vehicle.t_react /
-                                                             timedelta, 0))
-                    vehicle.change_lane.insert(0, 'outward')
-                    vehicle.wants_to_go_right = False
-
-            if vehicle.wants_to_go_right:
-                vehicle.accelerate(self.max_speed, -2, timedelta)
-                return
 
             '''
             Driving too close to the vehicle in front
@@ -243,7 +246,7 @@ class Edge:
 
                             # decelerate if the vehicle is close enough
                             if delta > 0 and delta < 30 and delta < gap:
-                                vehicle.accelerate(self.max_speed, -2,
+                                vehicle.accelerate(self.max_speed, -4,
                                                    timedelta)
                                 return
             except:
@@ -335,34 +338,14 @@ class Edge:
             return False
         return False
 
-    def really_need_to_outward(self, vehicle):
-        vehicle.wants_to_go_right = False
-        place, speed = vehicle.location, vehicle.speed
-
-        # check whether there exists a outer edge
+    def within_marge_to_wall(self, location):
         try:
-            this_edge = self.outer_edge
-        except AttributeError:
-            return False
-
-        # check whether there is a 'wall'
-        try:
-            diff = self.walls[0][0] - place
-        except AttributeError:
-            return False
+            diff = self.walls[0][0] - location
+            if(0 < diff < self.wall_marge):
+                return True
         except IndexError:
             return False
-
-        # approaching the wall...
-        if diff < 0 or diff > self.wall_marge:
-            return False
-
-        vehicle.wants_to_go_right = True
-
-        if(this_edge.check_location(place - 15, place + 10)):
-            return False
-
-        return True
+        return False
 
     def plot_vehicles(self):
         edge = self

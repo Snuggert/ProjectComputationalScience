@@ -16,10 +16,10 @@ def max_speed(loc):
 def main():
     tick = 0.1
     myCanvas = Canvas()
-    myEdge = Edge([[0, 100], [500, 100]], max_speed, tick)
-    myEdgeNeighbor = Edge([[0, 93], [500, 93]], max_speed, tick)
-    myEdgeNeighborNeighbor = Edge([[0, 85], [400, 85]], max_speed, tick)
-    myEdgeNeighborNeighbor.add_wall(400, 500)
+    myEdge = Edge([[0, 100], [1000, 100]], max_speed, tick)
+    myEdgeNeighbor = Edge([[0, 93], [1000, 93]], max_speed, tick)
+    myEdgeNeighborNeighbor = Edge([[0, 85], [800, 85]], max_speed, tick)
+    myEdgeNeighborNeighbor.add_wall(800, 1000)
     myCanvas.max_edge = myEdge.edgesize
 
     myEdge.add_neighbor(myEdgeNeighbor, True)
@@ -62,7 +62,7 @@ def simulate(env, edges, tick, myCanvas):
         if(round(env.now, 1) % 10.0 == 0):
             print "time:", round(env.now, 1)
         yield env.timeout(tick)
-        plt.pause(0.01)
+        plt.pause(0.1)
 
 if __name__ == '__main__':
     main()
