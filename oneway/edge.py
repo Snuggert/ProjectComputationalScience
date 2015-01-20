@@ -19,6 +19,7 @@ class Edge:
         self.to_remove = []
         self.collisions = []
         self.to_change = []
+        self.walls = []
 
     def add_vehicle(self, vehicle, remove=False):
         if(remove):
@@ -40,6 +41,9 @@ class Edge:
             self.inner_edge = edge
         else:
             self.outer_edge = edge
+
+    def add_wall(self, up_lim, low_lim):
+        self.walls.append([up_lim, low_lim])
 
     def remove_vehicle_from_neigbors(self, vehicle):
         try:
@@ -179,7 +183,7 @@ class Edge:
             '''
             Check if it's possible to change lanes outward.
             '''
-            if(self.check_lane(vehicle, 30, 40, 'outer')):
+            if(self.check_lane(vehicle, 20, 50, 'outer')):
                 if(len(vehicle.change_lane) == 0):
                     vehicle.change_lane = [None] * int(round(vehicle.t_react /
                                                              timedelta, 0))
@@ -343,8 +347,10 @@ class Edge:
 
         # check whether there is a 'wall'
         try:
-            diff = self.wall - place
+            diff = self.walls[0][0] - place
         except AttributeError:
+            return False
+        except IndexError:
             return False
 
         # approaching the wall...
@@ -353,11 +359,8 @@ class Edge:
 
         vehicle.wants_to_go_right = True
 
-        x = (place - 15, place + 10)
-
-        for veh in this_edge.vehicles:
-            if x[0] < veh.location < x[1]:
-                return False
+        if(this_edge.check_location(place - 15, place + 10)):
+            return False
 
         return True
 

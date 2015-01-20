@@ -57,4 +57,4 @@ def reactiontime(tick):
 
 
 def automax():
-    return int(random.normalvariate(0., 2.) * 10) / 10.0
+    return int(random.normalvariate(0., 7.) * 10) / 10.0

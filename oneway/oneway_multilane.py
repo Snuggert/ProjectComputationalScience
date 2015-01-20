@@ -19,12 +19,13 @@ def main():
     myEdge = Edge([[0, 100], [500, 100]], max_speed, tick)
     myEdgeNeighbor = Edge([[0, 93], [500, 93]], max_speed, tick)
     myEdgeNeighborNeighbor = Edge([[0, 85], [400, 85]], max_speed, tick)
+    myEdgeNeighborNeighbor.add_wall(400, 500)
+    myCanvas.max_edge = myEdge.edgesize
 
     myEdge.add_neighbor(myEdgeNeighbor, True)
     myEdgeNeighbor.add_neighbor(myEdge, False)
     myEdgeNeighbor.add_neighbor(myEdgeNeighborNeighbor, True)
     myEdgeNeighborNeighbor.add_neighbor(myEdgeNeighbor, False)
-    myCanvas.max_edge = myEdge.edgesize
 
     # myEdgeNeighborNeighbor.add_vehicle(Vehicle(0., 249., 'broken', tick))
     # for i in range(20, -1, -1):
@@ -56,8 +57,8 @@ def simulate(env, edges, tick, myCanvas):
 
         myCanvas.update_screen()
 
-        if(round(env.now, 1) % 0.5 == 0):
-            edges[0].add_vehicle(Vehicle(40, 0., 'car', 0.1))
+        if(round(env.now, 1) % 1.0 == 0):
+            edges[0].add_vehicle(Vehicle(30, 0., 'car', 0.1))
         if(round(env.now, 1) % 10.0 == 0):
             print "time:", round(env.now, 1)
         yield env.timeout(tick)
