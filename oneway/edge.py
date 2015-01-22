@@ -106,7 +106,7 @@ class Edge:
 
         # move each vehicle and make decisions
         for i, vehicle in enumerate(self.vehicles):
-            if vehicle.max_acc > 0:
+            if vehicle.max_acc(vehicle.speed) > 0:
                 self.move_vehicle(vehicle, i)
 
     def move_vehicle(self, vehicle, i):
@@ -258,8 +258,8 @@ class Edge:
             '''
             if abs(relative_speed) < 0.5:
                 # there is enough space to accelerate
-                if gap > min_gap + vehicle.max_acc * timedelta * timedelta:
-                    vehicle.accelerate(self.max_speed, vehicle.max_acc,
+                if gap > min_gap + vehicle.max_acc(vehicle.speed) * timedelta * timedelta:
+                    vehicle.accelerate(self.max_speed, vehicle.max_acc(vehicle.speed),
                                        timedelta)
 
                 # take the speed of the vehicle in front
@@ -279,7 +279,7 @@ class Edge:
 
                 # maximal acceleration
                 else:
-                    acc_adj = vehicle.max_acc
+                    acc_adj = vehicle.max_acc(vehicle.speed)
 
                 vehicle.accelerate(self.max_speed, acc_adj, timedelta)
                 return
@@ -313,11 +313,11 @@ class Edge:
 
             # accelerate if the car in front is far away
             else:
-                vehicle.accelerate(self.max_speed, vehicle.max_acc,
+                vehicle.accelerate(self.max_speed, vehicle.max_acc(vehicle.speed),
                                    timedelta)
         else:
                 # accelerate
-                vehicle.accelerate(self.max_speed, vehicle.max_acc, timedelta)
+                vehicle.accelerate(self.max_speed, vehicle.max_acc(vehicle.speed), timedelta)
 
     '''
     Check if it's possible to change lanes.

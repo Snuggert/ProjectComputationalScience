@@ -1,9 +1,53 @@
 import random
 
 
+# Using data from Thesis of Matthew C. Snare Msc. Civil engineering.
+# Modelling using his data of a 1998 Honda Accord
+# The Rakha et al. constant power model.
+def car_acc(v_speed):
+    # constants
+    v_mass = 1770.  # Kilos
+    friction_coeff = 0.6  # Coefficient Mu
+    engine_eff = 0.75  # Coefficient Eta
+    engine_power = 111.9  # in kW
+
+    F_t = 3600 * engine_eff * (engine_power / v_speed)
+    F_max = 9.8066 * v_mass * friction_coeff
+    F = min(F_t, F_max)  # Tractive Force
+
+    constant_aero = 0.047285
+    C_d = 0.34  # Air drag coefficient
+    C_h = 0.95  # Altitude coefficient
+    A = 2.12  # Frontal area in m^2
+    R_a = constant_aero * C_d * C_h * A * v_speed * v_speed
+
+    C_r = 1.25  # Rolling resistance coefficient
+    c_2 = 0.0328  # Rolling resistance coefficient
+    c_3 = 4.575  # Rolling resistance coefficient
+
+    # Rolling resistance
+    R_r = 9.8066 * C_r * (c_2 * v_speed + c_3) * (v_mass / 1000.)
+
+    # Grade resistance is zero because we assume constant height of the road.
+    R_g = 0
+
+    R = R_a + R_r + R_g
+
+    return (F - R) / v_mass
+
+
+def truck_acc(speed):
+    return 2.
+
+
+def broken_acc(speed):
+    return 0
+
+
 class Vehicle:
-    v_properties = {"car": (5., 10., 3, 1), "truck": (3., 4., 2, 4),
-                    "broken": (0., 10., 3, 1)}
+    v_properties = {"car": (car_acc, 10., 3, 1),
+                    "truck": (truck_acc, 4., 2, 4),
+                    "broken": (broken_acc, 10., 3, 1)}
 
     def __init__(self, speed, location, v_type, tick):
         self.t_react = reactiontime(tick)
@@ -33,7 +77,7 @@ class Vehicle:
             self.set_next_acc(acceleration)
             if self.acc[0] < 0:
                 self.speed += self.acc[0] * timedelta
-                
+
         # accelerate as much as possible
         else:
             self.set_next_acc(acceleration)
