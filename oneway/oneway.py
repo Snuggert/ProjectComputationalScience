@@ -11,16 +11,16 @@ from pygame.locals import QUIT, KEYDOWN, K_ESCAPE
 
 
 def max_speed(loc):
-    return 30
+    return 600
 
 
 def main():
     tick = 0.1
     myCanvas = Canvas()
-    myEdge = Edge([[0, 100], [500, 100]], max_speed, tick)
+    myEdge = Edge([[0, 100], [2000, 100]], max_speed, tick)
     myCanvas.max_edge = myEdge.edgesize
 
-    # myEdge.add_vehicle(Vehicle(0., 200., 'broken', tick))
+    myEdge.add_vehicle(Vehicle(0., 0., 'car', tick))
     # for i in range(9, 2, -1):
     #     new_vehicle = Vehicle(random.randint(0, 10), i * 20., 'car', tick)
     #     myEdge.add_vehicle(new_vehicle)
@@ -47,15 +47,17 @@ def simulate(env, edge, tick, myCanvas):
             myCanvas.draw_vehicle(vehicle, edge)
 
         myCanvas.update_screen()
+        truck = edge.vehicles[0]
+        print truck.speed, truck.max_acc(truck.speed, truck.mass)
 
-        if(round(env.now, 1) % 1.5 == 0):
+        # if(round(env.now, 1) % 1.5 == 0):
             # if random.random() > 0.5:
             #     edge.add_vehicle(Vehicle(30, 0., 'car', 0.1))
             # else:
-            edge.add_vehicle(Vehicle(30, 0., 'car', 0.1))
+            # edge.add_vehicle(Vehicle(30, 0., 'car', 0.1))
 
-        if(round(env.now, 1) % 10.0 == 0):
-            print "time:", round(env.now, 1)
+        # if(round(env.now, 1) % 10.0 == 0):
+        #     print "time:", round(env.now, 1)
         yield env.timeout(tick)
         plt.pause(0.01)
 

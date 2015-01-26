@@ -4,10 +4,10 @@ import random
 # Using data from Thesis of Matthew C. Snare Msc. Civil engineering.
 # Modelling using his data of a 1998 Honda Accord
 # The Rakha et Lucic. variable power model with constant power.
-def car_acc(v_speed):
+def car_acc(v_speed, weight):
     v_speed_km = v_speed * 3.6  # m/s to km/h
     # constants
-    v_mass = 1770.  # Kilos
+    v_mass = weight  # Kilos
     axle_mass = 0.610  # Mass on tractive Axle
     friction_coeff = 0.6  # Coefficient Mu
     engine_eff = 0.75  # Coefficient Eta
@@ -42,8 +42,65 @@ def car_acc(v_speed):
     return a
 
 
-def truck_acc(speed):
-    return 2.
+# Using data from Rakha and Lucic variable power paper.
+# The Rakha et Lucic. variable power model with constant power.
+def truck_acc(v_speed, weight):
+    v_speed_km = v_speed * 3.6
+    # constants
+    v_mass = weight  # Kilos
+    axle_mass = 0.410  # Mass on tractive Axle
+    friction_coeff = 0.6  # Coefficient Mu
+    engine_eff = 0.75  # Coefficient Eta
+    engine_power = 320.  # in kW
+
+    F_max = 9.8066 * v_mass * axle_mass * friction_coeff
+    try:
+        F_t = 3600 * engine_eff * (engine_power / v_speed_km)
+    except ZeroDivisionError:
+        F_t = F_max
+    F = min(F_t, F_max)  # Tractive Force
+
+    constant_aero = 0.047285
+    C_d = 0.34  # Air drag coefficient
+    C_h = 0.95  # Altitude coefficient
+    A = 3.5  # Frontal area in m^2
+    R_a = constant_aero * C_d * C_h * A * v_speed_km * v_speed_km
+
+    C_r = 1.25  # Rolling resistance coefficient, for radial tires.
+    c_2 = 0.0328  # Rolling resistance coefficient
+    c_3 = 4.575  # Rolling resistance coefficient
+
+    # Rolling resistance
+    R_r = 9.8066 * C_r * (c_2 * v_speed_km + c_3) * (v_mass / 1000.)
+
+    # Grade resistance is zero because we assume constant height of the road.
+    R_g = 0
+
+    R = R_a + R_r + R_g
+
+    a = (F - R) / v_mass  # m/s^2
+    return a
+
+
+# Using data from Rakha et Lucic paper of truck weight distribution.
+def truck_weight():
+    percentage = random.randint(0, 99)
+    if(0 >= percentage < 5):
+        return 6804
+    elif(5 >= percentage < 10):
+        return 11340
+    elif(10 >= percentage < 26):
+        return 15876
+    elif(26 >= percentage < 40):
+        return 20412
+    elif(40 >= percentage < 60):
+        return 24947
+    elif(60 >= percentage < 74):
+        return 29483
+    elif(74 >= percentage < 98):
+        return 34019
+    else:
+        return 38555
 
 
 def broken_acc(speed):
@@ -51,8 +108,8 @@ def broken_acc(speed):
 
 
 class Vehicle:
-    v_properties = {"car": (car_acc, 10., 3, 1),
-                    "truck": (truck_acc, 4., 2, 4),
+    v_properties = {"car": (car_acc, 10., 3, 1770.),
+                    "truck": (truck_acc, 4., 2, truck_weight()),
                     "broken": (broken_acc, 10., 3, 1)}
 
     def __init__(self, speed, location, v_type, tick):
