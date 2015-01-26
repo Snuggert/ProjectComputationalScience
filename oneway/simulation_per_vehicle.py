@@ -48,8 +48,8 @@ histogram = False
 use_plot = False
 
 # files to write to
-file_edge = "results_edge_met_limit.txt"
-file_vehicle = "results_vehicle_met_limit.txt"
+file_edge = "results_edge.txt"
+file_vehicle = "results_vehicle.txt"
 
 # define function max_speed
 if limit:
