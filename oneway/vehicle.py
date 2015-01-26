@@ -1,6 +1,5 @@
 import random
 
-
 # Using data from Thesis of Matthew C. Snare Msc. Civil engineering.
 # Modelling using his data of a 1998 Honda Accord
 # The Rakha et Lucic. variable power model with constant power.
@@ -84,24 +83,15 @@ def truck_acc(v_speed, weight):
 
 # Using data from Rakha et Lucic paper of truck weight distribution.
 def truck_weight():
-    percentage = random.randint(0, 99)
-    if(0 >= percentage < 5):
-        return 6804
-    elif(5 >= percentage < 10):
-        return 11340
-    elif(10 >= percentage < 26):
-        return 15876
-    elif(26 >= percentage < 40):
-        return 20412
-    elif(40 >= percentage < 60):
-        return 24947
-    elif(60 >= percentage < 74):
-        return 29483
-    elif(74 >= percentage < 98):
-        return 34019
-    else:
-        return 38555
+    percentage = random.random() * 100.
+    intervals = [5, 10, 26, 40, 60, 74, 98]
+    weights = [6804, 11340, 15876, 20412, 24947, 29483, 34019, 38555]
 
+    for index, upper in enumerate(intervals):
+        if percentage < upper:
+            return weights[index]
+
+    return weights[-1]
 
 def broken_acc(speed):
     return 0
@@ -131,7 +121,7 @@ class Vehicle:
         if self.use_extra and new_acc >= 0. and self.speed > 0:
             new_acc = self.extra_acc_adj
 
-        new_acc = min([new_acc, self.max_acc])
+        new_acc = min([new_acc, self.max_acc(self.speed)])
         new_acc = max([new_acc, -self.max_brake])
 
         self.acc.remove(self.acc[0])

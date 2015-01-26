@@ -277,9 +277,11 @@ class Edge:
             '''
             if abs(relative_speed) < 0.5:
                 # there is enough space to accelerate
-                if gap > min_gap + vehicle.max_acc(vehicle.speed, vehicle.mass) * timedelta * timedelta:
-                    vehicle.accelerate(self.max_speed, vehicle.max_acc(vehicle.speed, vehicle.mass),
-                                       timedelta)
+                if gap > min_gap + vehicle.max_acc(vehicle.speed, vehicle.mass) \
+                    * timedelta * timedelta:
+                    
+                    vehicle.accelerate(self.max_speed, 
+                        vehicle.max_acc(vehicle.speed, vehicle.mass), timedelta)
 
                 # take the speed of the vehicle in front
                 else:
@@ -332,11 +334,12 @@ class Edge:
 
             # accelerate if the car in front is far away
             else:
-                vehicle.accelerate(self.max_speed, vehicle.max_acc(vehicle.speed, vehicle.mass),
-                                   timedelta)
+                vehicle.accelerate(self.max_speed, 
+                    vehicle.max_acc(vehicle.speed, vehicle.mass), timedelta)
         else:
                 # accelerate
-                vehicle.accelerate(self.max_speed, vehicle.max_acc(vehicle.speed, vehicle.mass), timedelta)
+                vehicle.accelerate(self.max_speed, 
+                    vehicle.max_acc(vehicle.speed, vehicle.mass), timedelta)
 
     '''
     Check if it's possible to change lanes.
@@ -370,7 +373,7 @@ class Edge:
 
         # return True if the lane is empty
         if num == 0:
-            vehicle.extra_acc_adj = vehicle.max_acc
+            vehicle.extra_acc_adj = vehicle.max_acc(vehicle.speed, vehicle.mass)
             return True
 
         # there is only one car
