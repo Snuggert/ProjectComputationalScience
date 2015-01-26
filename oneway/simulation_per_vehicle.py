@@ -30,22 +30,21 @@ class Info:
 Define constants
 '''
 # define sizes
-#locations = [[0, 0],[4800, 6400]]
-locations = [[0, 0],[30, 40]]
+locations = [[0, 0],[4800, 6400]]
 start_wall, stop_wall = 6000, 7000
 num_lanes = 3
 		
 # probabilities
-delta_t = 0.25 # seconde tot nieuwe auto
+delta_t = 0.50 # seconde tot nieuwe auto
 print "Aantal auto's per seconde = %.3f" % (1. / delta_t)
 p_truck = 0.02128
 
 # choices
 wall = True
-write_edge = True
-write_vehicle = True
+write_edge = False
+write_vehicle = False
 limit = True # add temporary speed limit
-histogram = True
+histogram = False
 use_plot = False
 
 # files to write to
@@ -64,7 +63,7 @@ else:
 		return 120 / 3.6
 
 # initiation constants
-init_location = -0.1
+init_location = -1000.
 init_speed = max_speed(init_location)
 
 # number of iterations and tick
@@ -84,6 +83,7 @@ results = {} # id_nr -> Info
 collision_nr = []
 finished = False
 started = False
+count = 0
 
 # make edges
 edges = []
@@ -108,12 +108,12 @@ if wall:
 		edges[-1].add_vehicle(broken_veh)
 	edges[-1].add_wall(start_wall, stop_wall)
 
-count = 0
-
 '''
 Run simulation
 '''
 while True:	
+	if finished:
+		break
 	time = t * tick
 	place_new = False
 
@@ -141,11 +141,12 @@ while True:
 			if t % 5 == 0 and plot:
 				edges[0].plot_vehicles(interval[0], interval[1])
 
-	# place a vehicle and initiate a new one
+	# place a vehicle
 	if place_new:
 		lane = random.randint(0, num_lanes - 1)
 		new_veh = make_new_vehicle(edges[lane])
 		edges[lane].add_vehicle(new_veh)
+		last_car = new_veh
 		nr += 1
 
 	# move all vehicles
@@ -154,11 +155,14 @@ while True:
 		edge.move_vehicles()
 
 	continue_simulation = False
-	number_of_veh = 0
 
 	# iterate over every vehicle on the road
 	for edge in edges:
 		for vehicle in edge.vehicles:
+			index = int(round(vehicle.location))
+			if index in range(8001):
+				speed_at_x[index][0] += vehicle.speed
+				speed_at_x[index][1] += 1
 
 			# count collisions
 			this_nr = vehicle.id_nr
@@ -170,7 +174,6 @@ while True:
 			# is the simulation finished?
 			if this_nr not in collision_nr and this_nr != -1:
 				continue_simulation = True
-				number_of_veh += 1
 			else:
 				vehicle.wants_to_go_right = False
 
@@ -193,13 +196,13 @@ while True:
 
 				if not finished:
 					finished = True
-				if t <= N and vehicle.count_this:
+					print "Eerste gefinished: t = %d" % t
+				if vehicle.count_this:
 					new = Info()
-					new.avg_speed = edgesize / (time - vehicle.t_begin) 
+					new.time_interval = time - vehicle.t_begin
 					new.t_react, new.truck, new.automax = (vehicle.t_react, 
 						vehicle.truck, vehicle.auto_max)
 					results[vehicle.id_nr] = new
-
 
 	# stop if all the cars have finished or crashed
 	if t > N and not continue_simulation:
@@ -235,12 +238,12 @@ if (n_fin + n_crash) > 0:
 		f = open(file_vehicle, "a")
 		for id_nr in results:
 			inf = results[id_nr]
-			tup = (inf.avg_speed * 3.6,
+			tup = (inf.time_interval,
 				rate_in,
 				limit,
 				inf.truck,
 				inf.t_react,
-				inf.automax * 3.6)
+				inf.automax)
 			s = ""
 			for i, item in enumerate(tup):
 				if i != 0:
@@ -261,11 +264,11 @@ if (n_fin + n_crash) > 0:
 		hist = []
 		for id_nr in results:
 			inf = results[id_nr]
-			hist.append(inf.avg_speed * 3.6)
+			hist.append(inf.time_interval)
 
-		title = "Average speed of vehicles on a %d-lane road" % num_lanes
+		title = "Average time spent on the three-lane road"
 		plt.hist(hist, color = "red", alpha = 0.7)
-		plt.xlabel("Average speed in km/h")
+		plt.xlabel("Average time in seconds")
 		plt.ylabel("Frequency")
 		plt.title(title)
 		plt.show()

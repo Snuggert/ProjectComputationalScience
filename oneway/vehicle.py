@@ -93,7 +93,7 @@ def truck_weight():
 
     return weights[-1]
 
-def broken_acc(speed):
+def broken_acc(speed, weight):
     return 0
 
 
@@ -121,7 +121,7 @@ class Vehicle:
         if self.use_extra and new_acc >= 0. and self.speed > 0:
             new_acc = self.extra_acc_adj
 
-        new_acc = min([new_acc, self.max_acc(self.speed)])
+        new_acc = min([new_acc, self.max_acc(self.speed, self.mass)])
         new_acc = max([new_acc, -self.max_brake])
 
         self.acc.remove(self.acc[0])
