@@ -1,8 +1,9 @@
 import random
 
+
 # Using data from Thesis of Matthew C. Snare Msc. Civil engineering.
 # Modelling using his data of a 1998 Honda Accord
-# The Rakha et al. constant power model.
+# The Rakha et Lucic. variable power model with constant power.
 def car_acc(v_speed):
     v_speed_km = v_speed * 3.6  # m/s to km/h
     # constants
@@ -12,53 +13,11 @@ def car_acc(v_speed):
     engine_eff = 0.75  # Coefficient Eta
     engine_power = 111.9  # in kW
 
-    F_t = 3600 * engine_eff * (engine_power / v_speed_km)
     F_max = 9.8066 * v_mass * axle_mass * friction_coeff
-    F = min(F_t, F_max)  # Tractive Force
-
-    constant_aero = 0.047285
-    C_d = 0.34  # Air drag coefficient
-    C_h = 0.95  # Altitude coefficient
-    A = 2.12  # Frontal area in m^2
-    R_a = constant_aero * C_d * C_h * A * v_speed_km * v_speed_km
-
-    C_r = 1.25  # Rolling resistance coefficient
-    c_2 = 0.0328  # Rolling resistance coefficient
-    c_3 = 4.575  # Rolling resistance coefficient
-
-    # Rolling resistance
-    R_r = 9.8066 * C_r * (c_2 * v_speed_km + c_3) * (v_mass / 1000.)
-
-    # Grade resistance is zero because we assume constant height of the road.
-    R_g = 0
-
-    R = R_a + R_r + R_g
-
-    a = (F - R) / v_mass  # m/s^2
-    return a
-
-
-def truck_acc(speed):
-    return 2.
-
-
-def broken_acc(speed):
-    return 0
-
-# Using data from Thesis of Matthew C. Snare Msc. Civil engineering.
-# Modelling using his data of a 1998 Honda Accord
-# The Rakha et al. constant power model.
-def car_acc(v_speed):
-    v_speed_km = v_speed * 3.6  # m/s to km/h
-    # constants
-    v_mass = 1770.  # Kilos
-    axle_mass = 0.610  # Mass on tractive Axle
-    friction_coeff = 0.6  # Coefficient Mu
-    engine_eff = 0.75  # Coefficient Eta
-    engine_power = 111.9  # in kW
-
-    F_t = 3600 * engine_eff * (engine_power / v_speed_km)
-    F_max = 9.8066 * v_mass * axle_mass * friction_coeff
+    try:
+        F_t = 3600 * engine_eff * (engine_power / v_speed_km)
+    except ZeroDivisionError:
+        F_t = F_max
     F = min(F_t, F_max)  # Tractive Force
 
     constant_aero = 0.047285
@@ -143,6 +102,7 @@ class Vehicle:
 
         self.loc_speed_old = self.loc_speed_old[0], self.speed
 
+
 def reactiontime(tick):
     mu, sigma, theta = (0.18, 0.01, 0.02)
     gau = random.gauss(mu, sigma)
@@ -155,5 +115,5 @@ def reactiontime(tick):
 def automax():
     mu, sigma, theta = 0, 0.4, 1.
     gau = random.gauss(mu, sigma)
-    exp = random.gammavariate(1, theta)    
+    exp = random.gammavariate(1, theta)
     return gau + exp
