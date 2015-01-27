@@ -1,5 +1,6 @@
 import random
 
+
 # Using data from Thesis of Matthew C. Snare Msc. Civil engineering.
 # Modelling using his data of a 1998 Honda Accord
 # The Rakha et Lucic. variable power model with constant power.
@@ -81,6 +82,10 @@ def truck_acc(v_speed, weight):
     return a
 
 
+def broken_acc(speed, weight):
+    return 0
+
+
 # Using data from Rakha et Lucic paper of truck weight distribution.
 def truck_weight():
     percentage = random.random() * 100.
@@ -92,9 +97,6 @@ def truck_weight():
             return weights[index]
 
     return weights[-1]
-
-def broken_acc(speed, weight):
-    return 0
 
 
 class Vehicle:

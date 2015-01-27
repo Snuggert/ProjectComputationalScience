@@ -36,7 +36,7 @@ start_wall, stop_wall = 6000, 7000
 num_lanes = 3
 
 # probabilities
-delta_t = 1.0  # seconde tot nieuwe auto
+delta_t = 1.00  # seconde tot nieuwe auto
 print "Aantal auto's per seconde = %.3f" % (1. / delta_t)
 p_truck = 0.02128
 
@@ -44,7 +44,7 @@ p_truck = 0.02128
 wall = True
 write_edge = True
 write_vehicle = True
-limit = False  # add temporary speed limit
+limit = True  # add temporary speed limit
 histogram = False
 use_plot = False
 

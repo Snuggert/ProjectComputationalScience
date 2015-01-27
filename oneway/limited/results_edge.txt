@@ -1,0 +1,12 @@
+p_crash, rate_in, limit
+ 0.0888   1.9367,     1, 0.50 sec per car
+ 0.1484,  1.7864,     1, 0.55 sec per car
+ 0.0841,  1.7719,     1, 0.60 sec per car
+ 0.0216,  1.5201,     1, 0.65 sec per car
+ 0.0254,  1.5205,     1, 0.70 sec per car
+ 0.0114,  1.3147,     1, 0.75 sec per car
+ 0.0096,  1.2225,     1, 0.80 sec per car
+ 0.0000,  1.1751,     1, 0.85 sec per car
+ 0.0000,  1.1099,     1, 0.90 sec per car
+ 0.0000,  1.1072,     1, 0.95 sec per car
+ 0.0165,  0.9713,     1, 1.00 sec per car

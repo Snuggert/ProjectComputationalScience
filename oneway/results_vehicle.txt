@@ -1,1 +1,0 @@
-time_interval,rate_in,limit,truck,t_react,automax
