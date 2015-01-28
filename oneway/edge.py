@@ -42,8 +42,8 @@ class Edge:
         else:
             self.outer_edge = edge
 
-    def add_wall(self, up_lim, low_lim):
-        self.walls.append([up_lim, low_lim])
+    def add_wall(self, low_lim, up_lim):
+        self.walls.append([low_lim, up_lim])
 
     def remove_vehicle_from_neigbors(self, vehicle):
         try:
@@ -157,7 +157,7 @@ class Edge:
         # end of the lane reached
         if vehicle.location > self.edgesize:
             self.to_remove.append(vehicle)
-            return 
+            return
 
         # vehicle was in an accident
         if vehicle in self.collisions:
@@ -536,7 +536,7 @@ class Edge:
         return collision
 
 
-def find_min_gap(v_current, vehicle, marge, reactiontime = False):
+def find_min_gap(v_current, vehicle, marge, reactiontime=False):
     t_brake_abs = v_current / vehicle.max_brake
     x_brake_abs = (v_current * t_brake_abs) / 2.
     gap = x_brake_abs + marge

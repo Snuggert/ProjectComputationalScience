@@ -20,10 +20,11 @@ def main():
     myEdge = Edge([[0, 100], [500, 100]], max_speed, tick)
     myCanvas.max_edge = myEdge.edgesize
 
-    myEdge.add_vehicle(Vehicle(0., 400., 'broken', tick))
-    for i in range(9, 2, -1):
-        new_vehicle = Vehicle(random.randint(0, 10), i * 20., 'car', tick)
-        myEdge.add_vehicle(new_vehicle)
+    myEdge.add_vehicle(Vehicle(0., 80., 'car', tick))
+    myEdge.add_vehicle(Vehicle(50., 20., 'car', tick))
+    # for i in range(9, 4, -1):
+    #     new_vehicle = Vehicle(50, i * 20., 'car', tick)
+    #     myEdge.add_vehicle(new_vehicle)
 
     env = simpy.Environment()
     env.process(simulate(env, myEdge, tick, myCanvas))
@@ -54,8 +55,8 @@ def simulate(env, edge, tick, myCanvas):
         #     else:
         #         edge.add_vehicle(Vehicle(30, 0., 'car', 0.1))
 
-        if(round(env.now, 1) % 10.0 == 0):
-            print "time:", round(env.now, 1)
+        # if(round(env.now, 1) % 10.0 == 0):
+        #     print "time:", round(env.now, 1)
         yield env.timeout(tick)
         plt.pause(0.05)
 
