@@ -32,6 +32,7 @@ def main():
 
 
 def simulate(env, edge, tick, myCanvas):
+    print "["
     while True:
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYDOWN and
@@ -57,7 +58,7 @@ def simulate(env, edge, tick, myCanvas):
         if(round(env.now, 1) % 10.0 == 0):
             print "time:", round(env.now, 1)
         yield env.timeout(tick)
-        plt.pause(0.05)
+        plt.pause(0.01)
 
 if __name__ == '__main__':
     main()

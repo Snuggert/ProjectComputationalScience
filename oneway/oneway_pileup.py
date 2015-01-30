@@ -20,7 +20,8 @@ def main():
     myEdge = Edge([[0, 100], [500, 100]], max_speed, tick)
     myCanvas.max_edge = myEdge.edgesize
 
-    myEdge.add_vehicle(Vehicle(0., 80., 'car', tick))
+    myEdge.add_vehicle(Vehicle(0., 120., 'car', tick))
+    myEdge.add_vehicle(Vehicle(50., 70., 'car', tick))
     myEdge.add_vehicle(Vehicle(50., 20., 'car', tick))
     # for i in range(9, 4, -1):
     #     new_vehicle = Vehicle(50, i * 20., 'car', tick)
