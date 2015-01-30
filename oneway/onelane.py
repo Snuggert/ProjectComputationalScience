@@ -16,23 +16,22 @@ def max_speed(loc):
 
 def main():
     tick = 0.1
-    myCanvas = Canvas()
-    myEdge = Edge([[0, 100], [500, 100]], max_speed, tick)
-    myCanvas.max_edge = myEdge.edgesize
+    my_canvas = Canvas()
+    my_edge = Edge([[0, 100], [500, 100]], max_speed, tick)
+    my_canvas.max_edge = my_edge.edgesize
 
-    myEdge.add_vehicle(Vehicle(0., 400., 'broken', tick))
+    my_edge.add_vehicle(Vehicle(0., 400., 'broken', tick))
     for i in range(9, 2, -1):
         new_vehicle = Vehicle(random.randint(0, 10), i * 20., 'car', tick)
-        myEdge.add_vehicle(new_vehicle)
+        my_edge.add_vehicle(new_vehicle)
 
     env = simpy.Environment()
-    env.process(simulate(env, myEdge, tick, myCanvas))
+    env.process(simulate(env, my_edge, tick, my_canvas))
     env.run(until=500)
     plt.show()
 
 
-def simulate(env, edge, tick, myCanvas):
-    print "["
+def simulate(env, edge, tick, my_canvas):
     while True:
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYDOWN and
@@ -40,14 +39,14 @@ def simulate(env, edge, tick, myCanvas):
                 pygame.quit()
                 sys.exit()
 
-        myCanvas.clear_screen((10, 10, 12))
-        myCanvas.draw_edge(edge)
+        my_canvas.clear_screen((10, 10, 12))
+        my_canvas.draw_edge(edge)
 
         edge.move_vehicles()
         for vehicle in edge.vehicles:
-            myCanvas.draw_vehicle(vehicle, edge)
+            my_canvas.draw_vehicle(vehicle, edge)
 
-        myCanvas.update_screen()
+        my_canvas.update_screen()
 
         # if(round(env.now, 1) % 5.0 == 0):
         #     if random.random() > 0.5:

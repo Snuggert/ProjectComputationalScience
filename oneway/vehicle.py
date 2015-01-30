@@ -82,6 +82,7 @@ def truck_acc(v_speed, weight):
     return a
 
 
+# Broken car has no acceleration.
 def broken_acc(speed, weight):
     return 0
 
@@ -100,8 +101,8 @@ def truck_weight():
 
 
 class Vehicle:
-    v_properties = {"car": (car_acc, 10., 3, 1770.),
-                    "truck": (truck_acc, 4., 2, truck_weight()),
+    v_properties = {"car": (car_acc, 10., 4, 1770.),
+                    "truck": (truck_acc, 4., 12, truck_weight()),
                     "broken": (broken_acc, 10., 3, 1)}
 
     def __init__(self, speed, location, v_type, tick):

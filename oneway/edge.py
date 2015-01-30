@@ -81,8 +81,8 @@ class Edge:
 
                 if crashed:
                     self.collisions.remove(vehicle)
-                    append_coll = ('self.' + direction + 
-                        '_edge.collisions.append(vehicle)')
+                    append_coll = ('self.' + direction +
+                                   '_edge.collisions.append(vehicle)')
                     exec(append_coll)
 
     def vehicle_changes_lane(self, vehicle, side):
@@ -210,8 +210,8 @@ class Edge:
                 if self.check_lane(vehicle, 'outer'):
                     self.vehicle_changes_lane(vehicle, 'outer')
                     vehicle.wants_to_go_right = False
-                    vehicle.accelerate(self.max_speed, 
-                        vehicle.extra_acc_adj, timedelta)
+                    vehicle.accelerate(self.max_speed,
+                                       vehicle.extra_acc_adj, timedelta)
                     return
             else:
                 vehicle.wants_to_go_right = False
@@ -222,8 +222,8 @@ class Edge:
             if not self.stay_here(vehicle):
                 if self.check_lane(vehicle, 'outer'):
                     self.vehicle_changes_lane(vehicle, 'outer')
-                    vehicle.accelerate(self.max_speed, 
-                        vehicle.extra_acc_adj, timedelta)
+                    vehicle.accelerate(self.max_speed,
+                                       vehicle.extra_acc_adj, timedelta)
                     return
                 else:
                     self.use_extra = False
@@ -234,8 +234,8 @@ class Edge:
             if gap < min_gap:
                 if self.check_lane(vehicle, 'inner'):
                     self.vehicle_changes_lane(vehicle, 'inner')
-                    vehicle.accelerate(self.max_speed, 
-                        vehicle.extra_acc_adj, timedelta)
+                    vehicle.accelerate(self.max_speed,
+                                       vehicle.extra_acc_adj, timedelta)
                     return
 
                 # adjust the speed in a way that:
@@ -256,18 +256,17 @@ class Edge:
                 if num > 0:
                     # find the car at the (front) left that is closest
                     for veh in this_edge.vehicles:
-                        distance = find_min_gap(current_speed, vehicle, 
-                            veh.length + self.marge, True)
-                        marge = (vehicle.location + veh.length, 
-                            vehicle.location + distance)
+                        distance = find_min_gap(current_speed, vehicle,
+                                                veh.length + self.marge, True)
+                        marge = (vehicle.location + veh.length,
+                                 vehicle.location + distance)
 
-                        if (marge[0] < veh.location < marge[1] and
-                            veh.wants_to_go_right and
-                            -2. < vehicle.speed - veh.speed < 12.):
+                        if(marge[0] < veh.location < marge[1]
+                           and veh.wants_to_go_right
+                           and -2. < vehicle.speed - veh.speed < 12.):
 
                             vehicle.extra_acc_adj = -2
-                            vehicle.use_extra = True                            
-                            
+                            vehicle.use_extra = True
             except:
                 # there is no inner edge (vehicle is at far left lane)
                 AttributeError
@@ -277,11 +276,13 @@ class Edge:
             '''
             if abs(relative_speed) < 0.5:
                 # there is enough space to accelerate
-                if gap > min_gap + vehicle.max_acc(vehicle.speed, vehicle.mass) \
-                    * timedelta * timedelta:
-                    
-                    vehicle.accelerate(self.max_speed, 
-                        vehicle.max_acc(vehicle.speed, vehicle.mass), timedelta)
+                if(gap > min_gap + vehicle.max_acc(vehicle.speed, vehicle.mass)
+                   * timedelta * timedelta):
+
+                    vehicle.accelerate(self.max_speed,
+                                       vehicle.max_acc(vehicle.speed,
+                                                       vehicle.mass),
+                                       timedelta)
 
                 # take the speed of the vehicle in front
                 else:
@@ -312,7 +313,7 @@ class Edge:
             if vehicle_infront in self.collisions:
                 relative_speed = current_speed
 
-            # delta_t is nonzero, because if gap = needed_gap and 
+            # delta_t is nonzero, because if gap = needed_gap and
             # drives too fast, the gap is less than min_gap
             delta_t = 2. * (gap - needed_gap) / relative_speed
             acc_adj = relative_speed / delta_t
@@ -323,8 +324,8 @@ class Edge:
                 # check lanes if possible
                 if self.check_lane(vehicle, 'inner'):
                     self.vehicle_changes_lane(vehicle, 'inner')
-                    vehicle.accelerate(self.max_speed, 
-                        vehicle.extra_acc_adj, timedelta)
+                    vehicle.accelerate(self.max_speed,
+                                       vehicle.extra_acc_adj, timedelta)
                     return
 
             # make an appropriate deceleration
@@ -334,12 +335,16 @@ class Edge:
 
             # accelerate if the car in front is far away
             else:
-                vehicle.accelerate(self.max_speed, 
-                    vehicle.max_acc(vehicle.speed, vehicle.mass), timedelta)
+                vehicle.accelerate(self.max_speed,
+                                   vehicle.max_acc(vehicle.speed,
+                                                   vehicle.mass),
+                                   timedelta)
         else:
                 # accelerate
-                vehicle.accelerate(self.max_speed, 
-                    vehicle.max_acc(vehicle.speed, vehicle.mass), timedelta)
+                vehicle.accelerate(self.max_speed,
+                                   vehicle.max_acc(vehicle.speed,
+                                                   vehicle.mass),
+                                   timedelta)
 
     '''
     Check if it's possible to change lanes.
@@ -373,7 +378,8 @@ class Edge:
 
         # return True if the lane is empty
         if num == 0:
-            vehicle.extra_acc_adj = vehicle.max_acc(vehicle.speed, vehicle.mass)
+            vehicle.extra_acc_adj = vehicle.max_acc(vehicle.speed,
+                                                    vehicle.mass)
             return True
 
         # there is only one car
@@ -398,8 +404,8 @@ class Edge:
 
         # both cars are behind vehicle
         if loc_first < loc0:
-            gap_first = find_min_gap(first.speed, first, 
-                len0 + self.marge, True)
+            gap_first = find_min_gap(first.speed, first,
+                                     len0 + self.marge, True)
             vehicle.extra_acc_adj = 3.
             if loc_first < loc0 < loc_first + gap_first:
                 return False
@@ -408,8 +414,8 @@ class Edge:
 
         # both cars are in front of vehicle
         elif loc_second > loc0:
-            gap_self = find_min_gap(speed0, vehicle, 
-                second.length + self.marge, True)
+            gap_self = find_min_gap(speed0, vehicle,
+                                    second.length + self.marge, True)
             if loc0 < loc_second < loc0 + gap_self:
                 vehicle.extra_acc_adj = -3.
                 return False
@@ -419,13 +425,13 @@ class Edge:
 
         # vehicle's location is in between these cars
         else:
-            gap_self = find_min_gap(speed0, vehicle, 
-                first.length + self.marge, True)
-            gap_second = find_min_gap(second.speed, second, 
-                len0 + self.marge, True)
+            gap_self = find_min_gap(speed0, vehicle,
+                                    first.length + self.marge, True)
+            gap_second = find_min_gap(second.speed, second,
+                                      len0 + self.marge, True)
 
-            if (loc_second < loc0 < loc_second + gap_second) or \
-                (loc0 < loc_first < loc0 + gap_self):
+            if((loc_second < loc0 < loc_second + gap_second) or
+               (loc0 < loc_first < loc0 + gap_self)):
 
                 if (loc_second < loc0 < loc_second + gap_second):
                     acc_adj = 3.
@@ -494,8 +500,8 @@ class Edge:
             collision = True
             if vehicle not in self.collisions:
                 print "FATAL ERROR!!! >:( "
-                print "auto %d botst op voorganger op locatie %.1f" % (i,
-                                                                       vehicle.location)
+                print "auto %d botst op voorganger op locatie %.1f" % \
+                    (i, vehicle.location)
 
             # new location vehicle
             vehicle.location = (vehicle_infront.location
